@@ -1,0 +1,201 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  savedProperties SavedProperty[]
+  savedSynagogues SavedSynagogue[]
+  leads           Lead[]
+  searches        Search[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Synagogue {
+  id           String       @id @default(cuid())
+  name         String
+  denomination Denomination
+  address      String
+  city         String
+  state        String
+  zip          String
+  phone        String?
+  email        String?
+  website      String?
+  lat          Float
+  lng          Float
+  // PostGIS geography column managed via raw migration: location geography(Point,4326)
+  description  String?
+  imageUrl     String?
+  isVerified   Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  propertyDistances PropertySynagogueDistance[]
+  nearestProperties Property[]                  @relation("NearestSynagogue")
+  savedBy           SavedSynagogue[]
+
+  @@map("synagogues")
+}
+
+enum Denomination {
+  ORTHODOX
+  MODERN_ORTHODOX
+  CONSERVATIVE
+  REFORM
+  RECONSTRUCTIONIST
+  SEPHARDIC
+  CHABAD
+  OTHER
+}
+
+model Property {
+  id           String         @id @default(cuid())
+  externalId   String?        @unique
+  title        String
+  description  String?
+  address      String
+  city         String
+  state        String
+  zip          String
+  neighborhood String?
+  lat          Float
+  lng          Float
+  // PostGIS geography column managed via raw migration: location geography(Point,4326)
+  listingType  ListingType
+  status       PropertyStatus @default(ACTIVE)
+  price        Int // cents for sale; monthly rent in cents
+  beds         Int
+  baths        Float
+  sqft         Int?
+  yearBuilt    Int?
+  imageUrls    String[]
+  amenities    String[]
+
+  nearestSynagogueId   String?
+  nearestSynagugueDist Float? // miles
+  synagogueCount1mi    Int     @default(0)
+  proximityScore       Float?
+
+  isApproved Boolean  @default(false)
+  isFeatured Boolean  @default(false)
+  listedAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  nearestSynagogue   Synagogue?                  @relation("NearestSynagogue", fields: [nearestSynagogueId], references: [id])
+  synagogueDistances PropertySynagogueDistance[]
+  savedBy            SavedProperty[]
+  leads              Lead[]
+
+  @@map("properties")
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  RENTED
+  INACTIVE
+}
+
+model PropertySynagogueDistance {
+  id          String   @id @default(cuid())
+  propertyId  String
+  synagogueId String
+  distanceMi  Float // miles
+  walkMinutes Int // estimated walk time in minutes
+  createdAt   DateTime @default(now())
+
+  property  Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  synagogue Synagogue @relation(fields: [synagogueId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, synagogueId])
+  @@index([propertyId])
+  @@index([synagogueId])
+  @@map("property_synagogue_distances")
+}
+
+model SavedProperty {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@map("saved_properties")
+}
+
+model SavedSynagogue {
+  id          String   @id @default(cuid())
+  userId      String
+  synagogueId String
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  synagogue Synagogue @relation(fields: [synagogueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, synagogueId])
+  @@map("saved_synagogues")
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  userId     String?
+  propertyId String
+  name       String
+  email      String
+  phone      String?
+  message    String?
+  createdAt  DateTime @default(now())
+
+  user     User?    @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@map("leads")
+}
+
+model Search {
+  id        String   @id @default(cuid())
+  userId    String?
+  query     String
+  city      String?
+  zip       String?
+  filters   Json?
+  resultCnt Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("searches")
+}
