@@ -29,8 +29,15 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
       onMouseEnter={() => onHover?.(property.id)}
       onMouseLeave={() => onHover?.(null)}
     >
+      {/* Full-card overlay link — sits behind interactive elements */}
+      <Link
+        href={`/property/${property.id}`}
+        className="absolute inset-0 z-0"
+        aria-label={property.title}
+      />
+
       {/* Image */}
-      <Link href={`/property/${property.id}`} className="block relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         {property.imageUrls[0] ? (
           <Image
             src={property.imageUrls[0]}
@@ -38,6 +45,7 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 400px"
+            quality={85}
           />
         ) : (
           <div className="h-full bg-slate-100 flex items-center justify-center text-slate-400">
@@ -46,7 +54,7 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
         )}
 
         {/* Badges overlay */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 z-10 flex gap-2">
           <Badge variant={property.listingType === "SALE" ? "default" : "success"}>
             {property.listingType === "SALE" ? "For Sale" : "For Rent"}
           </Badge>
@@ -61,34 +69,30 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
         <button
           onClick={(e) => { e.preventDefault(); setSaved((v) => !v); }}
           className={cn(
-            "absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full transition-colors shadow-sm",
+            "absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors shadow-sm",
             saved ? "bg-rose-500 text-white" : "bg-white/90 text-slate-500 hover:bg-white hover:text-rose-500"
           )}
           aria-label={saved ? "Unsave" : "Save"}
         >
           <Heart className={cn("h-4 w-4", saved && "fill-current")} />
         </button>
-      </Link>
+      </div>
 
       {/* Content */}
-      <Link href={`/property/${property.id}`} className="block p-4">
-        {/* Price */}
+      <div className="relative z-10 p-4 pointer-events-none">
         <div className="mb-1 text-xl font-bold text-slate-900">
           {formatPrice(property.price, property.listingType)}
         </div>
 
-        {/* Title */}
         <h3 className="mb-1 text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">
           {property.title}
         </h3>
 
-        {/* Address */}
         <p className="mb-3 flex items-center gap-1 text-xs text-slate-500">
           <MapPin className="h-3 w-3 flex-shrink-0" />
           {property.address}, {property.city}
         </p>
 
-        {/* Stats row */}
         <div className="mb-3 flex gap-3 text-xs text-slate-600">
           <span className="flex items-center gap-1">
             <Bed className="h-3.5 w-3.5" /> {property.beds} bd
@@ -103,12 +107,11 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
           )}
         </div>
 
-        {/* Nearest shul */}
+        {/* Nearest shul — pointer-events re-enabled so the link works */}
         {nearestShul && (
           <Link
             href={`/synagogue/${nearestShul.synagogueId}`}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs hover:bg-blue-100 transition-colors"
+            className="pointer-events-auto flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs hover:bg-blue-100 transition-colors"
           >
             <span className="text-base">✡</span>
             <div className="min-w-0">
@@ -123,13 +126,12 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
           </Link>
         )}
 
-        {/* Shul count */}
         {property.synagogueCount1mi > 1 && (
           <p className="mt-2 text-xs text-slate-500">
             +{property.synagogueCount1mi - 1} more shul{property.synagogueCount1mi > 2 ? "s" : ""} within 1 mi
           </p>
         )}
-      </Link>
+      </div>
     </div>
   );
 }

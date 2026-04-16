@@ -1,16 +1,16 @@
 import { notFound } from "next/navigation";
-import { PROPERTIES } from "@/lib/mock-data";
+import { getPropertyById, getAllActiveProperties } from "@/lib/db-helpers";
 import { PropertyDetailClient } from "./property-detail-client";
 
-export function generateStaticParams() {
-  return PROPERTIES.map((p) => ({ id: p.id }));
+export async function generateStaticParams() {
+  const properties = await getAllActiveProperties();
+  return properties.map((p) => ({ id: p.id }));
 }
 
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
-  const property = PROPERTIES.find((p) => p.id === params.id);
+export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
+  const property = await getPropertyById(params.id);
   if (!property) notFound();
 
-  // All shuls within 1.5 miles (from distances table)
   const nearbyShuls = (property.synagogueDistances ?? [])
     .filter((sd) => sd.distanceMi <= 1.5)
     .sort((a, b) => a.distanceMi - b.distanceMi);

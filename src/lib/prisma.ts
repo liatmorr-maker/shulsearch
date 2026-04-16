@@ -1,23 +1,18 @@
-// Run `npx prisma generate` after setting DATABASE_URL to generate the typed client.
-// Until then, this module exports a lazy-initialized client with a runtime require.
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type PrismaClientType = any;
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-declare const globalThis: { _prisma?: PrismaClientType } & typeof global;
-
-function getPrisma(): PrismaClientType {
-  if (process.env.NODE_ENV === "production") {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaClient } = require("@prisma/client");
-    return new PrismaClient();
-  }
-  if (!globalThis._prisma) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaClient } = require("@prisma/client");
-    globalThis._prisma = new PrismaClient({ log: ["query", "error", "warn"] });
-  }
-  return globalThis._prisma!;
+function createPrismaClient() {
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL!,
+  });
+  return new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  });
 }
 
-export const prisma: PrismaClientType = getPrisma();
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

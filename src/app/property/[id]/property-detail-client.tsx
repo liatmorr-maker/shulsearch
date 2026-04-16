@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bed, Bath, Square, MapPin, Calendar, Heart, ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,20 @@ interface Props {
 export function PropertyDetailClient({ property, nearbyShuls }: Props) {
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [photos, setPhotos] = useState<string[]>(property.imageUrls);
+
+  // Fetch full photo gallery from MLS on mount (detail endpoint has all photos)
+  useEffect(() => {
+    if (!property.externalId) return;
+    fetch(`/api/property-photos?externalId=${encodeURIComponent(property.externalId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.photos) && data.photos.length > 0) {
+          setPhotos(data.photos);
+        }
+      })
+      .catch(() => {});
+  }, [property.externalId]);
 
   const allSynagogues = nearbyShuls.map((s) => s.synagogue);
 
@@ -43,11 +57,13 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
           <div className="overflow-hidden rounded-2xl">
             <div className="relative h-80 sm:h-96">
               <Image
-                src={property.imageUrls[activeImage] ?? ""}
+                src={photos[activeImage] ?? ""}
                 alt={property.title}
                 fill
                 className="object-cover"
                 priority
+                quality={90}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
               />
               <div className="absolute top-4 left-4 flex gap-2">
                 <Badge variant={property.listingType === "SALE" ? "default" : "success"}>
@@ -58,9 +74,9 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
                 )}
               </div>
             </div>
-            {property.imageUrls.length > 1 && (
+            {photos.length > 1 && (
               <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-                {property.imageUrls.map((url, i) => (
+                {photos.map((url, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
@@ -69,7 +85,7 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
                       activeImage === i ? "border-[var(--primary)]" : "border-transparent"
                     )}
                   >
-                    <Image src={url} alt="" fill className="object-cover" />
+                    <Image src={url} alt="" fill className="object-cover" sizes="96px" />
                   </button>
                 ))}
               </div>

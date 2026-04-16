@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { PROPERTIES } from "@/lib/mock-data";
+import { getFeaturedProperties } from "@/lib/db-helpers";
 import { PropertyCard } from "@/components/property/property-card";
 
-export function FeaturedListings() {
-  const featured = PROPERTIES.filter((p) => p.isFeatured).slice(0, 3);
+export async function FeaturedListings() {
+  const featured = await getFeaturedProperties(3);
 
   return (
     <section className="bg-white py-20">

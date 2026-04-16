@@ -3,14 +3,13 @@
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { MapPin, LayoutGrid, Map as MapIcon } from "lucide-react";
-import { PROPERTIES, SYNAGOGUES } from "@/lib/mock-data";
+import type { MockProperty, MockSynagogue } from "@/lib/mock-data";
 import { PropertyCard } from "@/components/property/property-card";
 import { FilterBar } from "@/components/results/filter-bar";
 import { useFilterStore } from "@/store/filter-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// Dynamically import map to avoid SSR issues with mapbox-gl
 const ShulSearchMap = dynamic(
   () => import("@/components/map/shul-search-map").then((m) => m.ShulSearchMap),
   { ssr: false, loading: () => <MapPlaceholder /> }
@@ -29,9 +28,15 @@ function MapPlaceholder() {
 
 interface ResultsClientProps {
   searchParams: { q?: string; city?: string; zip?: string };
+  initialProperties: MockProperty[];
+  initialSynagogues: MockSynagogue[];
 }
 
-export function ResultsClient({ searchParams }: ResultsClientProps) {
+export function ResultsClient({
+  searchParams,
+  initialProperties,
+  initialSynagogues,
+}: ResultsClientProps) {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
 
@@ -40,45 +45,48 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
     bedsMin, denomination, sortBy, setQuery,
   } = useFilterStore();
 
-  // Sync URL query into store on mount
   useEffect(() => {
     const q = searchParams.q ?? searchParams.city ?? searchParams.zip ?? "";
     setQuery(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filter & sort
   const filtered = useMemo(() => {
-    let results = PROPERTIES.filter((p) => p.isApproved && p.status === "ACTIVE");
+    let results = [...initialProperties];
 
-    // Listing type
+    // City / text query filter (q param like "Hollywood" or "33160")
+    const q = (searchParams.q ?? searchParams.city ?? "").trim().toLowerCase();
+    if (q) {
+      results = results.filter(
+        (p) =>
+          p.city.toLowerCase().includes(q) ||
+          p.address.toLowerCase().includes(q) ||
+          p.zip.toLowerCase().includes(q)
+      );
+    }
+
     if (listingType !== "ALL") {
       results = results.filter((p) => p.listingType === listingType);
     }
 
-    // Max shul distance
     if (maxDistanceMi !== null) {
       results = results.filter(
         (p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi
       );
     }
 
-    // Price
     results = results.filter((p) => p.price >= priceMin && p.price <= priceMax);
 
-    // Beds
     if (bedsMin > 0) {
       results = results.filter((p) => p.beds >= bedsMin);
     }
 
-    // Denomination filter – check if any nearby shul matches
     if (denomination !== "ALL") {
       results = results.filter((p) =>
         p.synagogueDistances?.some((sd) => sd.synagogue.denomination === denomination)
       );
     }
 
-    // Sort
     switch (sortBy) {
       case "proximity":
         results.sort((a, b) => (b.proximityScore ?? 0) - (a.proximityScore ?? 0));
@@ -90,15 +98,13 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
         results.sort((a, b) => b.price - a.price);
         break;
       case "newest":
-        // mock: already in insertion order; reverse
         results.reverse();
         break;
     }
 
     return results;
-  }, [listingType, maxDistanceMi, priceMin, priceMax, bedsMin, denomination, sortBy]);
+  }, [initialProperties, listingType, maxDistanceMi, priceMin, priceMax, bedsMin, denomination, sortBy]);
 
-  // Which synagogues to show on map (only those relevant to filtered props)
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
     filtered.forEach((p) =>
@@ -108,8 +114,8 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
   }, [filtered]);
 
   const visibleSynagogues = useMemo(
-    () => SYNAGOGUES.filter((s) => visibleSynagogueIds.has(s.id)),
-    [visibleSynagogueIds]
+    () => initialSynagogues.filter((s) => visibleSynagogueIds.has(s.id)),
+    [initialSynagogues, visibleSynagogueIds]
   );
 
   const searchLabel =
@@ -117,10 +123,8 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
 
   return (
     <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
-      {/* Filter bar */}
       <FilterBar resultCount={filtered.length} />
 
-      {/* Mobile toggle */}
       <div className="flex md:hidden items-center justify-between border-b border-[var(--border)] bg-white px-4 py-2">
         <span className="text-sm text-slate-500">
           <MapPin className="inline h-3.5 w-3.5 mr-1" />
@@ -148,29 +152,21 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
         </div>
       </div>
 
-      {/* Main split layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel: property cards */}
         <div
           className={cn(
             "flex flex-col overflow-hidden bg-slate-50",
-            // Desktop: always visible at 45% width
             "md:w-[460px] lg:w-[520px] md:flex",
-            // Mobile: conditional
             mobileView === "list" ? "flex w-full" : "hidden"
           )}
         >
-          {/* Search heading */}
           <div className="flex items-center justify-between border-b border-[var(--border)] bg-white px-4 py-3">
-            <div>
-              <span className="text-sm font-semibold text-slate-800">
-                Results near{" "}
-                <span className="text-[var(--primary)]">{searchLabel}</span>
-              </span>
-            </div>
+            <span className="text-sm font-semibold text-slate-800">
+              Results near{" "}
+              <span className="text-[var(--primary)]">{searchLabel}</span>
+            </span>
           </div>
 
-          {/* Cards list */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
             {filtered.length === 0 ? (
               <EmptyState />
@@ -187,7 +183,6 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
           </div>
         </div>
 
-        {/* Right panel: map */}
         <div
           className={cn(
             "flex-1 overflow-hidden",
@@ -200,7 +195,6 @@ export function ResultsClient({ searchParams }: ResultsClientProps) {
             highlightedPropertyId={highlightedId}
             onPropertyClick={(id) => {
               setHighlightedId(id);
-              // On mobile, switch to list view when clicking map pin
               setMobileView("list");
             }}
             center={[-80.13, 25.96]}

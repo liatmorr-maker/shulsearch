@@ -1,33 +1,49 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 const AREAS = [
   {
     name: "Aventura",
-    description: "4 synagogues within 1 mile of many listings",
-    shulCount: 4,
-    listingCount: 120,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
+    description: "Luxury high-rises & walkable community with the highest shul density in South Florida",
+    image: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=600&q=80",
     gradient: "from-blue-900/70",
   },
   {
     name: "Boca Raton",
-    description: "Established Jewish community, top-rated schools",
-    shulCount: 6,
-    listingCount: 98,
-    image: "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&q=80",
-    gradient: "from-indigo-900/70",
+    description: "Established Jewish community with beautiful single-family homes and top-rated schools",
+    image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80",
+    gradient: "from-amber-900/60",
   },
   {
     name: "Sunny Isles Beach",
-    description: "Oceanfront luxury steps from Chabad &amp; Young Israel",
-    shulCount: 2,
-    listingCount: 74,
+    description: "Oceanfront luxury condos steps from Chabad, Young Israel, and the beach",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
     gradient: "from-teal-900/70",
   },
 ];
 
-export function PopularAreas() {
+export async function PopularAreas() {
+  // Fetch real counts from DB in parallel
+  const [synagogueCounts, listingCounts] = await Promise.all([
+    prisma.synagogue.groupBy({
+      by: ["city"],
+      where: { city: { in: AREAS.map((a) => a.name) } },
+      _count: { id: true },
+    }),
+    prisma.property.groupBy({
+      by: ["city"],
+      where: {
+        city: { in: AREAS.map((a) => a.name) },
+        isApproved: true,
+        status: "ACTIVE",
+      },
+      _count: { id: true },
+    }),
+  ]);
+
+  const shulByCity = Object.fromEntries(synagogueCounts.map((r) => [r.city, r._count.id]));
+  const listingsByCity = Object.fromEntries(listingCounts.map((r) => [r.city, r._count.id]));
+
   return (
     <section className="bg-slate-50 py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -57,9 +73,7 @@ export function PopularAreas() {
                 style={{ backgroundImage: `url(${area.image})` }}
               />
               {/* Gradient overlay */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-t ${area.gradient} to-transparent`}
-              />
+              <div className={`absolute inset-0 bg-gradient-to-t ${area.gradient} to-transparent`} />
 
               {/* Content */}
               <div className="relative p-6 pt-32 text-white">
@@ -67,10 +81,10 @@ export function PopularAreas() {
                 <p className="mt-1 text-sm text-white/80">{area.description}</p>
                 <div className="mt-3 flex gap-3 text-xs font-medium">
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
-                    ✡ {area.shulCount} shuls
+                    ✡ {shulByCity[area.name] ?? 0} shuls
                   </span>
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
-                    🏠 {area.listingCount} listings
+                    🏠 {listingsByCity[area.name] ?? 0} listings
                   </span>
                 </div>
               </div>

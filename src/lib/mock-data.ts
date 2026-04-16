@@ -16,6 +16,7 @@ export interface MockSynagogue {
 
 export interface MockProperty {
   id: string;
+  externalId?: string;
   title: string;
   description?: string;
   address: string;
@@ -33,6 +34,7 @@ export interface MockProperty {
   sqft?: number;
   yearBuilt?: number;
   imageUrls: string[];
+  amenities?: string[];
   isApproved: boolean;
   isFeatured: boolean;
   nearestSynagogueId?: string;

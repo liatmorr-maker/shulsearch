@@ -1,6 +1,7 @@
 "use client";
 
-import { SlidersHorizontal, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -28,30 +29,151 @@ const DENOMINATIONS = [
   ...Object.entries(DENOMINATION_LABELS).map(([value, label]) => ({ value, label })),
 ];
 
+const DEFAULT_MAX = 10_000_000_00; // $10M in cents
+
+function formatPriceLabel(cents: number, isMax = false): string {
+  if (isMax && cents >= DEFAULT_MAX) return "";
+  const dollars = cents / 100;
+  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(dollars % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (dollars >= 1_000) return `$${(dollars / 1_000).toFixed(0)}K`;
+  return `$${dollars.toLocaleString()}`;
+}
+
+function PriceFilter() {
+  const { priceMin, priceMax, setPriceRange } = useFilterStore();
+  const [open, setOpen] = useState(false);
+  const [minInput, setMinInput] = useState("");
+  const [maxInput, setMaxInput] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Sync inputs when popover opens
+  useEffect(() => {
+    if (open) {
+      setMinInput(priceMin > 0 ? String(Math.round(priceMin / 100)) : "");
+      setMaxInput(priceMax < DEFAULT_MAX ? String(Math.round(priceMax / 100)) : "");
+    }
+  }, [open, priceMin, priceMax]);
+
+  function apply() {
+    const min = minInput ? Math.round(parseFloat(minInput.replace(/,/g, "")) * 100) : 0;
+    const max = maxInput ? Math.round(parseFloat(maxInput.replace(/,/g, "")) * 100) : DEFAULT_MAX;
+    setPriceRange(min, max);
+    setOpen(false);
+  }
+
+  function clear() {
+    setMinInput("");
+    setMaxInput("");
+    setPriceRange(0, DEFAULT_MAX);
+    setOpen(false);
+  }
+
+  const hasPrice = priceMin > 0 || priceMax < DEFAULT_MAX;
+  const label = hasPrice
+    ? `${priceMin > 0 ? formatPriceLabel(priceMin) : "No min"} – ${priceMax < DEFAULT_MAX ? formatPriceLabel(priceMax) : "No max"}`
+    : "Any price";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+          hasPrice
+            ? "border-blue-400 bg-blue-50 text-blue-700"
+            : "border-[var(--border)] bg-white text-slate-600 hover:bg-slate-50"
+        )}
+      >
+        {label}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+
+      {open && (
+        <div className="absolute top-10 left-0 z-50 w-72 rounded-xl border border-[var(--border)] bg-white p-4 shadow-lg">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-700">Price Range</span>
+            {hasPrice && (
+              <button onClick={clear} className="text-xs text-slate-400 hover:text-slate-600">
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-600">Min</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                <input
+                  type="number"
+                  placeholder="No min"
+                  value={minInput}
+                  onChange={(e) => setMinInput(e.target.value)}
+                  className="h-10 w-full rounded-lg border border-[var(--border)] pl-6 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+
+            <span className="mt-5 text-slate-400">–</span>
+
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-600">Max</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                <input
+                  type="number"
+                  placeholder="No max"
+                  value={maxInput}
+                  onChange={(e) => setMaxInput(e.target.value)}
+                  className="h-10 w-full rounded-lg border border-[var(--border)] pl-6 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          <Button className="w-full" onClick={apply}>
+            Apply
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function FilterBar({ resultCount }: { resultCount: number }) {
   const {
     listingType, setListingType,
     maxDistanceMi, setMaxDistance,
-    priceMax, setPriceRange, priceMin,
     bedsMin, setBedsMin,
     denomination, setDenomination,
     sortBy, setSortBy,
     reset,
+    priceMin, priceMax,
   } = useFilterStore();
 
   const hasActiveFilters =
     listingType !== "ALL" ||
     maxDistanceMi !== null ||
     bedsMin > 0 ||
-    denomination !== "ALL";
+    denomination !== "ALL" ||
+    priceMin > 0 ||
+    priceMax < DEFAULT_MAX;
 
   return (
     <div className="sticky top-16 z-40 border-b border-[var(--border)] bg-white shadow-sm">
       <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-        {/* Icon */}
         <SlidersHorizontal className="h-4 w-4 text-slate-500 flex-shrink-0" />
 
-        {/* Listing type toggle */}
+        {/* Listing type */}
         <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
           {LISTING_TYPES.map((t) => (
             <button
@@ -69,7 +191,7 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
           ))}
         </div>
 
-        {/* Distance to Shul */}
+        {/* Distance */}
         <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
           {DISTANCE_OPTIONS.map((d) => (
             <button
@@ -87,31 +209,8 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
           ))}
         </div>
 
-        {/* Price max */}
-        <Select
-          value={String(priceMax)}
-          onValueChange={(v) => setPriceRange(priceMin, Number(v))}
-        >
-          <SelectTrigger className="h-8 w-36 text-xs">
-            <SelectValue placeholder="Max Price" />
-          </SelectTrigger>
-          <SelectContent>
-            {[
-              { label: "Any price", v: 10_000_000_00 },
-              { label: "Under $500K", v: 50_000_000 },
-              { label: "Under $1M", v: 100_000_000 },
-              { label: "Under $2M", v: 200_000_000 },
-              { label: "Under $5M", v: 500_000_000 },
-              { label: "Under $2K/mo", v: 200_000 },
-              { label: "Under $4K/mo", v: 400_000 },
-              { label: "Under $8K/mo", v: 800_000 },
-            ].map((o) => (
-              <SelectItem key={o.v} value={String(o.v)} className="text-xs">
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Price — Min/Max popover */}
+        <PriceFilter />
 
         {/* Beds */}
         <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] overflow-hidden">
@@ -167,7 +266,6 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
         )}
       </div>
 
-      {/* Result count */}
       <div className="border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500">
         {resultCount} listing{resultCount !== 1 ? "s" : ""} found
       </div>

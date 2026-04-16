@@ -68,6 +68,9 @@ export function Navbar() {
             <MobileNavLink href="/favorites" onClick={() => setMobileOpen(false)}>
               Saved
             </MobileNavLink>
+            <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
+              Admin
+            </MobileNavLink>
             <MobileNavLink href="/sign-in" onClick={() => setMobileOpen(false)}>
               Sign In
             </MobileNavLink>
