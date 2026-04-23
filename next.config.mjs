@@ -15,7 +15,7 @@ const nextConfig = {
   transpilePackages: ["mapbox-gl"],
   // Prisma and pg must not be bundled by webpack — they use Node.js native modules
   experimental: {
-    serverComponentsExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
+    serverComponentsExternalPackages: ["@prisma/client"],
   },
 };
 
