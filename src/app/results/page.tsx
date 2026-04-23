@@ -1,6 +1,9 @@
 import { getAllActiveProperties, getAllSynagogues } from "@/lib/db-helpers";
 import { ResultsClient } from "./results-client";
 
+// Always fetch fresh data so ?q= params are never stale-cached
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Search Results – ShulSearch",
 };

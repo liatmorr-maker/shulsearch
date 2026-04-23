@@ -6,17 +6,47 @@ import { Bed, Bath, Square, MapPin, Star, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDistance, DENOMINATION_LABELS, cn } from "@/lib/utils";
 import type { MockProperty } from "@/lib/mock-data";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 interface PropertyCardProps {
   property: MockProperty;
   isHighlighted?: boolean;
   onHover?: (id: string | null) => void;
+  initialSaved?: boolean;
 }
 
-export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardProps) {
-  const [saved, setSaved] = useState(false);
-  const nearestShul = property.synagogueDistances?.[0];
+export function PropertyCard({ property, isHighlighted, onHover, initialSaved = false }: PropertyCardProps) {
+  const [saved, setSaved]     = useState(initialSaved);
+  const [loading, setLoading] = useState(false);
+  const { isSignedIn }        = useUser();
+  const { openSignIn }        = useClerk();
+  const nearestShul           = property.synagogueDistances?.[0];
+
+  // Sync with server-side saved state when it loads
+  useEffect(() => { setSaved(initialSaved); }, [initialSaved]);
+
+  async function toggleSave(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res  = await fetch("/api/saved", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ propertyId: property.id }),
+      });
+      const data = await res.json();
+      setSaved(data.saved);
+    } catch { /* keep current state */ }
+    setLoading(false);
+  }
 
   return (
     <div
@@ -29,12 +59,8 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
       onMouseEnter={() => onHover?.(property.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      {/* Full-card overlay link — sits behind interactive elements */}
-      <Link
-        href={`/property/${property.id}`}
-        className="absolute inset-0 z-0"
-        aria-label={property.title}
-      />
+      {/* Full-card overlay link */}
+      <Link href={`/property/${property.id}`} className="absolute inset-0 z-0" aria-label={property.title} />
 
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
@@ -48,12 +74,10 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
             quality={85}
           />
         ) : (
-          <div className="h-full bg-slate-100 flex items-center justify-center text-slate-400">
-            No Image
-          </div>
+          <div className="h-full bg-slate-100 flex items-center justify-center text-slate-400">No Image</div>
         )}
 
-        {/* Badges overlay */}
+        {/* Badges */}
         <div className="absolute top-3 left-3 z-10 flex gap-2">
           <Badge variant={property.listingType === "SALE" ? "default" : "success"}>
             {property.listingType === "SALE" ? "For Sale" : "For Rent"}
@@ -65,16 +89,20 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
           )}
         </div>
 
-        {/* Save button */}
+        {/* Save / heart button */}
         <button
-          onClick={(e) => { e.preventDefault(); setSaved((v) => !v); }}
+          onClick={toggleSave}
+          disabled={loading}
           className={cn(
-            "absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors shadow-sm",
-            saved ? "bg-rose-500 text-white" : "bg-white/90 text-slate-500 hover:bg-white hover:text-rose-500"
+            "absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full transition-all shadow-sm",
+            saved
+              ? "bg-rose-500 text-white scale-110"
+              : "bg-white/90 text-slate-500 hover:bg-white hover:text-rose-500",
+            loading && "opacity-60"
           )}
-          aria-label={saved ? "Unsave" : "Save"}
+          aria-label={saved ? "Remove from saved" : "Save listing"}
         >
-          <Heart className={cn("h-4 w-4", saved && "fill-current")} />
+          <Heart className={cn("h-4 w-4 transition-all", saved && "fill-current")} />
         </button>
       </div>
 
@@ -94,20 +122,13 @@ export function PropertyCard({ property, isHighlighted, onHover }: PropertyCardP
         </p>
 
         <div className="mb-3 flex gap-3 text-xs text-slate-600">
-          <span className="flex items-center gap-1">
-            <Bed className="h-3.5 w-3.5" /> {property.beds} bd
-          </span>
-          <span className="flex items-center gap-1">
-            <Bath className="h-3.5 w-3.5" /> {property.baths} ba
-          </span>
+          <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {property.beds} bd</span>
+          <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {property.baths} ba</span>
           {property.sqft && (
-            <span className="flex items-center gap-1">
-              <Square className="h-3.5 w-3.5" /> {property.sqft.toLocaleString()} sqft
-            </span>
+            <span className="flex items-center gap-1"><Square className="h-3.5 w-3.5" /> {property.sqft.toLocaleString()} sqft</span>
           )}
         </div>
 
-        {/* Nearest shul — pointer-events re-enabled so the link works */}
         {nearestShul && (
           <Link
             href={`/synagogue/${nearestShul.synagogueId}`}

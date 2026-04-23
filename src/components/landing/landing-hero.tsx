@@ -13,11 +13,13 @@ const QUICK_CHIPS = [
   { label: "Hollywood", value: "Hollywood" },
   { label: "Surfside", value: "Surfside" },
   { label: "Bal Harbour", value: "Bal Harbour" },
+  { label: "Davie", value: "Davie" },
+  { label: "Cooper City", value: "Cooper City" },
 ];
 
 const STATS = [
-  { value: "500+", label: "Listings" },
-  { value: "60+", label: "Synagogues Mapped" },
+  { value: "4,000+", label: "Listings" },
+  { value: "80+", label: "Synagogues Mapped" },
   { value: "3", label: "South FL Counties" },
 ];
 
@@ -33,11 +35,12 @@ export function LandingHero() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
-      {/* Background pattern */}
+      {/* Background pattern — small Stars of David */}
       <div
         className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent('<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><text x="30" y="40" font-size="24" text-anchor="middle" fill="white" font-family="serif">✡</text></svg>')}")`,
+          backgroundSize: "60px 60px",
         }}
       />
 

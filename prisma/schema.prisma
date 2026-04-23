@@ -168,19 +168,31 @@ model SavedSynagogue {
 }
 
 model Lead {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   userId     String?
   propertyId String
   name       String
   email      String
   phone      String?
   message    String?
-  createdAt  DateTime @default(now())
+  status     LeadStatus @default(NEW)
+  notes      String?
+  source     String?    @default("request_info")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   user     User?    @relation(fields: [userId], references: [id])
   property Property @relation(fields: [propertyId], references: [id])
 
   @@map("leads")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CLOSED
+  LOST
 }
 
 model Search {

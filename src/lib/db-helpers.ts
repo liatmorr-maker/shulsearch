@@ -160,6 +160,7 @@ function propToMock(p: any): MockProperty {
     nearestSynagugueDist: p.nearestSynagugueDist ?? undefined,
     synagogueCount1mi: p.synagogueCount1mi,
     proximityScore: p.proximityScore ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     synagogueDistances: (p.synagogueDistances ?? []).map((sd: any) => ({
       synagogueId: sd.synagogueId,
       distanceMi: sd.distanceMi,

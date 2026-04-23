@@ -7,6 +7,10 @@ import { useState, useEffect } from "react";
 import { Bed, Bath, Square, MapPin, Calendar, Heart, ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RequestInfoModal } from "@/components/property/request-info-modal";
+import { UsageGateModal } from "@/components/usage-gate-modal";
+import { useUsageGate } from "@/hooks/use-usage-gate";
+import { useUser } from "@clerk/nextjs";
 import { formatPrice, formatDistance, DENOMINATION_LABELS, DENOMINATION_COLORS, cn } from "@/lib/utils";
 import type { MockProperty } from "@/lib/mock-data";
 
@@ -21,9 +25,18 @@ interface Props {
 }
 
 export function PropertyDetailClient({ property, nearbyShuls }: Props) {
+  const { isSignedIn } = useUser();
+  const { showGate, recordView, dismissGate } = useUsageGate(!!isSignedIn);
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [photos, setPhotos] = useState<string[]>(property.imageUrls);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+
+  // Count this property view toward the usage gate
+  useEffect(() => {
+    recordView();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch full photo gallery from MLS on mount (detail endpoint has all photos)
   useEffect(() => {
@@ -42,6 +55,9 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Usage gate modal */}
+      {showGate && <UsageGateModal onClose={dismissGate} />}
+
       {/* Back */}
       <Link
         href="/results"
@@ -183,7 +199,7 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
                 </div>
               )}
 
-              <Button className="w-full mb-3" size="lg">
+              <Button className="w-full mb-3" size="lg" onClick={() => setShowRequestModal(true)}>
                 <Phone className="mr-2 h-4 w-4" /> Request Info
               </Button>
               <Button
@@ -210,6 +226,14 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
           </div>
         </div>
       </div>
+
+      <RequestInfoModal
+        isOpen={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        propertyId={property.id}
+        propertyTitle={property.title}
+        propertyAddress={`${property.address}, ${property.city}, ${property.state} ${property.zip}`}
+      />
     </div>
   );
 }

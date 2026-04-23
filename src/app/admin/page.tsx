@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Panel – ShulSearch" };
 
 export default async function AdminPage() {
-  const [properties, synagogues, leads] = await Promise.all([
+  const [properties, synagogues, leads, users] = await Promise.all([
     prisma.property.findMany({
       include: {
         synagogueDistances: {
@@ -19,9 +19,18 @@ export default async function AdminPage() {
     }),
     getAllSynagogues(),
     prisma.lead.findMany({
-      include: { property: true },
+      include: {
+        property: true,
+        user: true,
+      },
       orderBy: { createdAt: "desc" },
-      take: 50,
+    }),
+    prisma.user.findMany({
+      include: {
+        savedProperties: { include: { property: true } },
+        leads: { orderBy: { createdAt: "desc" }, take: 5 },
+      },
+      orderBy: { createdAt: "desc" },
     }),
   ]);
 
@@ -43,7 +52,6 @@ export default async function AdminPage() {
     isFeatured: p.isFeatured,
     nearestSynagugueDist: p.nearestSynagugueDist ?? undefined,
     synagogueCount1mi: p.synagogueCount1mi,
-    proximityScore: p.proximityScore ?? undefined,
     synagogueDistances: p.synagogueDistances.map((sd) => ({
       synagogueId: sd.synagogueId,
       distanceMi: sd.distanceMi,
@@ -57,21 +65,41 @@ export default async function AdminPage() {
     })),
   }));
 
-  const serializedLeads = leads.map((l) => ({
+  const serializedLeads = leads.map((l) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyLead = l as any;
+    return {
     id: l.id,
     name: l.name,
     email: l.email,
     phone: l.phone ?? null,
     message: l.message ?? null,
+    status: (anyLead.status ?? "NEW") as string,
+    notes: (anyLead.notes ?? null) as string | null,
+    source: (anyLead.source ?? "request_info") as string,
     createdAt: l.createdAt.toISOString(),
-    property: l.property
-      ? {
-          id: l.property.id,
-          title: l.property.title,
-          price: l.property.price,
-          listingType: l.property.listingType as "SALE" | "RENT",
-        }
-      : null,
+    property: l.property ? {
+      id: l.property.id,
+      title: l.property.title,
+      address: l.property.address,
+      city: l.property.city,
+      price: l.property.price,
+      listingType: l.property.listingType as "SALE" | "RENT",
+    } : null,
+    user: l.user ? { id: l.user.id, name: l.user.name, email: l.user.email } : null,
+  };
+  });
+
+  const serializedUsers = users.map((u) => ({
+    id: u.id,
+    clerkId: u.clerkId,
+    email: u.email,
+    name: u.name ?? null,
+    role: u.role as string,
+    createdAt: u.createdAt.toISOString(),
+    savedCount: u.savedProperties.length,
+    leadsCount: u.leads.length,
+    lastLead: u.leads[0]?.createdAt.toISOString() ?? null,
   }));
 
   return (
@@ -79,6 +107,7 @@ export default async function AdminPage() {
       initialProperties={serializedProperties}
       synagogues={synagogues}
       leads={serializedLeads}
+      users={serializedUsers}
     />
   );
 }

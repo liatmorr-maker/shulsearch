@@ -2,13 +2,25 @@
 
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { MapPin, LayoutGrid, Map as MapIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MapPin, LayoutGrid, Map as MapIcon, Search } from "lucide-react";
 import type { MockProperty, MockSynagogue } from "@/lib/mock-data";
 import { PropertyCard } from "@/components/property/property-card";
 import { FilterBar } from "@/components/results/filter-bar";
-import { useFilterStore } from "@/store/filter-store";
+import { useFilterStore, HOME_TYPES, ALL_HOME_TYPES } from "@/store/filter-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const QUICK_CHIPS = [
+  "Aventura",
+  "Boca Raton",
+  "Sunny Isles Beach",
+  "Hollywood",
+  "Surfside",
+  "Bal Harbour",
+  "Cooper City",
+  "Davie",
+];
 
 const ShulSearchMap = dynamic(
   () => import("@/components/map/shul-search-map").then((m) => m.ShulSearchMap),
@@ -37,19 +49,29 @@ export function ResultsClient({
   initialProperties,
   initialSynagogues,
 }: ResultsClientProps) {
+  const router = useRouter();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
+  const [searchInput, setSearchInput] = useState(
+    searchParams.q ?? searchParams.city ?? searchParams.zip ?? ""
+  );
 
   const {
     listingType, maxDistanceMi, priceMin, priceMax,
-    bedsMin, denomination, sortBy, setQuery,
+    bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery,
   } = useFilterStore();
 
   useEffect(() => {
     const q = searchParams.q ?? searchParams.city ?? searchParams.zip ?? "";
     setQuery(q);
+    setSearchInput(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams.q, searchParams.city, searchParams.zip]);
+
+  function handleSearch(q: string) {
+    if (!q.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(q.trim())}`);
+  }
 
   const filtered = useMemo(() => {
     let results = [...initialProperties];
@@ -81,10 +103,25 @@ export function ResultsClient({
       results = results.filter((p) => p.beds >= bedsMin);
     }
 
+    if (bathsMin > 0) {
+      results = results.filter((p) => p.baths >= bathsMin);
+    }
+
     if (denomination !== "ALL") {
       results = results.filter((p) =>
         p.synagogueDistances?.some((sd) => sd.synagogue.denomination === denomination)
       );
+    }
+
+    // Home type filter — only apply when not all types are selected
+    if (homeTypes.length > 0 && homeTypes.length < ALL_HOME_TYPES.length) {
+      results = results.filter((p) => {
+        const titleLower = p.title.toLowerCase();
+        return homeTypes.some((selectedType) => {
+          const typeConfig = HOME_TYPES.find((ht) => ht.label === selectedType);
+          return typeConfig?.keywords.some((kw) => titleLower.includes(kw));
+        });
+      });
     }
 
     switch (sortBy) {
@@ -103,7 +140,8 @@ export function ResultsClient({
     }
 
     return results;
-  }, [initialProperties, listingType, maxDistanceMi, priceMin, priceMax, bedsMin, denomination, sortBy]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialProperties, listingType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
 
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
@@ -123,6 +161,47 @@ export function ResultsClient({
 
   return (
     <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
+      {/* Search bar + quick chips */}
+      <div className="border-b border-[var(--border)] bg-white px-4 py-3">
+        <div className="mx-auto flex max-w-2xl flex-col gap-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                className="h-10 w-full rounded-lg border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                placeholder="City, zip code, or neighborhood…"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch(searchInput)}
+              />
+            </div>
+            <Button
+              size="sm"
+              className="px-4"
+              onClick={() => handleSearch(searchInput)}
+            >
+              Search
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_CHIPS.map((city) => (
+              <button
+                key={city}
+                onClick={() => handleSearch(city)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  searchLabel.toLowerCase() === city.toLowerCase()
+                    ? "border-blue-500 bg-blue-600 text-white"
+                    : "border-[var(--border)] bg-slate-50 text-slate-600 hover:bg-slate-100"
+                )}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <FilterBar resultCount={filtered.length} />
 
       <div className="flex md:hidden items-center justify-between border-b border-[var(--border)] bg-white px-4 py-2">
