@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Denomination } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const NEW_SYNAGOGUES: {
   name: string; denomination: Denomination; address: string; city: string;
   state: string; zip: string; phone: string | null; website: string | null;

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY!;
 const RAPIDAPI_HOST = "realty-in-us.p.rapidapi.com";
 

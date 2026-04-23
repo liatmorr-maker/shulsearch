@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export const maxDuration = 300;
 
 // ─── Credentials ──────────────────────────────────────────────────────────────

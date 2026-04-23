@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 function distanceMiles(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 3958.8;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;

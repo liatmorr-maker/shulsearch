@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 /** Ensure a User row exists in our DB for the signed-in Clerk user */
 async function ensureUser(clerkId: string) {
   const clerkUser = await currentUser();

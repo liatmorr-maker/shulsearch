@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 function isAuthorized(req: Request) {
   const secret = process.env.CRON_SECRET;
   // If no secret is configured (local dev), allow all calls

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import { getPropertyById } from "@/lib/db-helpers";
 
 export async function GET() {
