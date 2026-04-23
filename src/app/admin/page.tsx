@@ -34,7 +34,7 @@ export default async function AdminPage() {
     }),
   ]);
 
-  const serializedProperties = properties.map((p) => ({
+  const serializedProperties = properties.map((p: typeof properties[number]) => ({
     id: p.id,
     title: p.title,
     address: p.address,
