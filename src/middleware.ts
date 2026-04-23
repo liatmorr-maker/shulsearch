@@ -8,13 +8,7 @@ const isProtectedRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { userId } = await (auth as any)();
-    if (!userId) {
-      const signInUrl = new URL("/sign-in", req.url);
-      signInUrl.searchParams.set("redirect_url", req.url);
-      return NextResponse.redirect(signInUrl);
-    }
+    await auth.protect();
   }
   return NextResponse.next();
 });
