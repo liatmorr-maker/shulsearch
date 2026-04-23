@@ -34,7 +34,8 @@ export default async function AdminPage() {
     }),
   ]);
 
-  const serializedProperties = properties.map((p: typeof properties[number]) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serializedProperties = (properties as any[]).map((p) => ({
     id: p.id,
     title: p.title,
     address: p.address,
