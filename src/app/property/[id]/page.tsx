@@ -1,11 +1,8 @@
 import { notFound } from "next/navigation";
-import { getPropertyById, getAllActiveProperties } from "@/lib/db-helpers";
+import { getPropertyById } from "@/lib/db-helpers";
 import { PropertyDetailClient } from "./property-detail-client";
 
-export async function generateStaticParams() {
-  const properties = await getAllActiveProperties();
-  return properties.map((p) => ({ id: p.id }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
   const property = await getPropertyById(params.id);

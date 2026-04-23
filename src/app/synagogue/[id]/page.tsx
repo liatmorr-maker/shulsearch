@@ -1,11 +1,8 @@
 import { notFound } from "next/navigation";
-import { getSynagogueById, getAllSynagogues, getPropertiesNearSynagogue } from "@/lib/db-helpers";
+import { getSynagogueById, getPropertiesNearSynagogue } from "@/lib/db-helpers";
 import { SynagogueDetailClient } from "./synagogue-detail-client";
 
-export async function generateStaticParams() {
-  const synagogues = await getAllSynagogues();
-  return synagogues.map((s) => ({ id: s.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const syn = await getSynagogueById(params.id);
