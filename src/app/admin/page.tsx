@@ -15,8 +15,17 @@ export default async function AdminPage() {
   if (!userId) redirect("/sign-in");
 
   const user = await currentUser();
-  if (!user || !ADMIN_EMAILS.includes(user.emailAddresses[0]?.emailAddress)) {
-    redirect("/");
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? "no-email";
+  if (!user || !ADMIN_EMAILS.includes(userEmail)) {
+    // Temporary debug: show email instead of redirecting
+    return (
+      <div style={{ padding: 40, fontFamily: "monospace" }}>
+        <h2>Admin access denied</h2>
+        <p>Signed-in email: <strong>{userEmail}</strong></p>
+        <p>Expected: <strong>liatmorr@gmail.com</strong></p>
+        <p>All emails: {user?.emailAddresses?.map(e => e.emailAddress).join(", ") ?? "none"}</p>
+      </div>
+    );
   }
   const [properties, synagogues, leads, users] = await Promise.all([
     prisma.property.findMany({
