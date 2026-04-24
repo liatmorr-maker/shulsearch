@@ -190,7 +190,8 @@ export function ResultsClient({
               Search
             </Button>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          {/* Quick chips — hidden on mobile to save vertical space */}
+          <div className="hidden md:flex flex-wrap gap-1.5">
             {QUICK_CHIPS.map((city) => (
               <button
                 key={city}
@@ -246,7 +247,8 @@ export function ResultsClient({
             mobileView === "list" ? "flex w-full" : "hidden"
           )}
         >
-          <div className="flex items-center justify-between border-b border-[var(--border)] bg-white px-4 py-3">
+          {/* "Results near X" sub-header — desktop only; mobile already shows location in the toggle bar */}
+          <div className="hidden md:flex items-center justify-between border-b border-[var(--border)] bg-white px-4 py-3">
             <span className="text-sm font-semibold text-slate-800">
               Results near{" "}
               <span className="text-[var(--primary)]">{searchLabel}</span>
