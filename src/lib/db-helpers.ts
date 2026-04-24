@@ -46,25 +46,35 @@ const PROPERTY_INCLUDE = {
 } as const;
 
 export async function getAllActiveProperties(city?: string): Promise<MockProperty[]> {
-  const rows = await prisma.property.findMany({
-    where: {
-      isApproved: true,
-      status: "ACTIVE",
-      ...(city
-        ? {
-            OR: [
-              { city: { contains: city, mode: "insensitive" } },
-              { zip: { contains: city, mode: "insensitive" } },
-              { address: { contains: city, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    include: PROPERTY_INCLUDE,
-    orderBy: { proximityScore: "desc" },
-    take: 500, // hard cap — map can't handle more than this comfortably
-  });
-  return rows.map(propToMock);
+  const cityFilter = city
+    ? {
+        OR: [
+          { city: { contains: city, mode: "insensitive" as const } },
+          { zip: { contains: city, mode: "insensitive" as const } },
+          { address: { contains: city, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
+
+  const baseWhere = { isApproved: true, status: "ACTIVE" as const, ...cityFilter };
+
+  // Fetch SALE and RENT separately so neither type gets squeezed out by the cap
+  const [saleRows, rentRows] = await Promise.all([
+    prisma.property.findMany({
+      where: { ...baseWhere, listingType: "SALE" },
+      include: PROPERTY_INCLUDE,
+      orderBy: { proximityScore: "desc" },
+      take: 400,
+    }),
+    prisma.property.findMany({
+      where: { ...baseWhere, listingType: "RENT" },
+      include: PROPERTY_INCLUDE,
+      orderBy: { proximityScore: "desc" },
+      take: 400,
+    }),
+  ]);
+
+  return [...saleRows, ...rentRows].map(propToMock);
 }
 
 export async function getFeaturedProperties(limit = 3): Promise<MockProperty[]> {
