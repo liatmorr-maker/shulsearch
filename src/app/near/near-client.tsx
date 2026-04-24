@@ -102,6 +102,7 @@ export function NearClient({ synagogues }: Props) {
   const [suggestions, setSuggestions] = useState<{ place_name: string; center: [number, number] }[]>([]);
   const [addrLoading, setAddrLoading] = useState(false);
   const [addrSearched, setAddrSearched] = useState(false);
+  const [addrError, setAddrError] = useState("");
   const [coords, setCoords]           = useState<{ lat: number; lng: number; label: string } | null>(null);
   const [shulResults, setShulResults] = useState<SynagogueWithDist[]>([]);
   const [addrProps, setAddrProps]     = useState<NearbyProperty[]>([]);
@@ -154,6 +155,7 @@ export function NearClient({ synagogues }: Props) {
   async function geocodeAndSearch(addr: string) {
     if (!addr.trim()) return;
     setAddrLoading(true);
+    setAddrError("");
     setSuggestions([]);
     try {
       const q = encodeURIComponent(addr);
@@ -162,7 +164,11 @@ export function NearClient({ synagogues }: Props) {
       );
       const json = await res.json();
       const feature = json.features?.[0];
-      if (!feature) { setAddrLoading(false); return; }
+      if (!feature) {
+        setAddrError("Address not found. Try a more specific address like '123 Main St, Aventura, FL'");
+        setAddrLoading(false);
+        return;
+      }
 
       const [lng, lat] = feature.center as [number, number];
       const label = feature.place_name as string;
@@ -184,7 +190,10 @@ export function NearClient({ synagogues }: Props) {
       setAddrProps(propJson.results ?? []);
       setAddrSearched(true);
       setAddrTab("shuls");
-    } catch { /* ignore */ }
+    } catch (e) {
+      setAddrError("Search failed. Please check your connection and try again.");
+      console.error("Geocode error:", e);
+    }
     setAddrLoading(false);
   }
 
@@ -340,6 +349,9 @@ export function NearClient({ synagogues }: Props) {
                 {addrLoading ? "Searching…" : "Search"}
               </Button>
             </div>
+          {addrError && (
+            <p className="mt-2 text-sm text-red-500 text-center">{addrError}</p>
+          )}
           </div>
 
           {addrSearched && coords && (
