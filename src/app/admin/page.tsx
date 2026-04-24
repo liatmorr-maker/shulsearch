@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { getAllSynagogues } from "@/lib/db-helpers";
 import { prisma } from "@/lib/prisma";
 import { AdminClient } from "./admin-client";
@@ -6,7 +8,16 @@ import { AdminClient } from "./admin-client";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Panel – ShulSearch" };
 
+const ADMIN_EMAILS = ["liatmorr@gmail.com"];
+
 export default async function AdminPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const user = await currentUser();
+  if (!user || !ADMIN_EMAILS.includes(user.emailAddresses[0]?.emailAddress)) {
+    redirect("/");
+  }
   const [properties, synagogues, leads, users] = await Promise.all([
     prisma.property.findMany({
       include: {
