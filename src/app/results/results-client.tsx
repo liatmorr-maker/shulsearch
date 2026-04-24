@@ -52,6 +52,13 @@ export function ResultsClient({
   const router = useRouter();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
+
+  // Trigger map resize when switching to map view on mobile
+  useEffect(() => {
+    if (mobileView === "map") {
+      setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
+    }
+  }, [mobileView]);
   const [searchInput, setSearchInput] = useState(
     searchParams.q ?? searchParams.city ?? searchParams.zip ?? ""
   );
@@ -264,8 +271,8 @@ export function ResultsClient({
 
         <div
           className={cn(
-            "flex-1 overflow-hidden",
-            mobileView === "map" ? "flex w-full" : "hidden md:flex"
+            "overflow-hidden",
+            mobileView === "map" ? "flex w-full h-full flex-1" : "hidden md:flex md:flex-1"
           )}
         >
           <ShulSearchMap
