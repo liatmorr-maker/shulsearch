@@ -53,17 +53,16 @@ export function LandingHero() {
         {/* Badge */}
         <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm border border-white/20">
           <MapPin className="h-3.5 w-3.5 text-blue-300" />
-          South Florida&apos;s #1 Jewish Real Estate Search
+          South Florida&apos;s #1 Home Search by Community
         </div>
 
         <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-balance">
           Find Your Home{" "}
-          <span className="text-blue-300">Near the Shul</span>
+          <span className="text-blue-300">Near What Matters Most</span>
         </h1>
 
         <p className="mb-10 max-w-2xl text-lg text-blue-100 sm:text-xl">
-          Search homes for sale and rent ranked by proximity to synagogues.
-          Filter by denomination, distance, and more.
+          Search homes for sale and rent ranked by proximity to synagogues, with smart filters for distance, denomination, and community.
         </p>
 
         {/* Search box */}
