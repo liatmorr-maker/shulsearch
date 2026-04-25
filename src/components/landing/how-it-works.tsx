@@ -10,7 +10,7 @@ const STEPS = [
   {
     icon: SlidersHorizontal,
     color: "bg-indigo-100 text-indigo-700",
-    title: "Filter by Shul Distance",
+    title: "Filter by Distance",
     desc: "Set max walking distance (0.25–1.5 mi), denomination, price, beds, and listing type.",
   },
   {
