@@ -201,13 +201,22 @@ export function AdminClient({ initialProperties, synagogues, leads: initialLeads
     setSyncResult(null);
     try {
       const res = await fetch("/api/sync-listings", { method: "POST" });
-      const data = await res.json();
-      if (data.error) {
-        alert(`Sync failed: ${data.error}`);
-        setSyncing(false);
+      if (res.status === 504 || res.status === 502) {
+        alert("Sync timed out — the job is too large to run manually on this plan. The automatic cron job runs daily at noon UTC and will keep listings fresh.");
         return;
       }
-      setSyncResult(data);
+      let data: Record<string, unknown>;
+      try {
+        data = await res.json();
+      } catch {
+        alert("Sync timed out — the job is too large to run manually on this plan. The automatic cron job runs daily at noon UTC and will keep listings fresh.");
+        return;
+      }
+      if (data.error) {
+        alert(`Sync failed: ${data.error}`);
+        return;
+      }
+      setSyncResult(data as { totalImported: number; realtor?: { imported: number }; zillow?: { imported: number } });
       await fetch("/api/admin/properties/approve-all", { method: "POST" });
       window.location.reload();
     } catch (err) {
