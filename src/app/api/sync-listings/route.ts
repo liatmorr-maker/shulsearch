@@ -247,6 +247,13 @@ async function batchUpsert(props: ParsedProperty[], synagogues: { id: string; la
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 export async function POST() {
+  if (IS_DEMO && !RAPIDAPI_KEY) {
+    return NextResponse.json(
+      { error: "RAPIDAPI_KEY environment variable is not set. Add it in Vercel → Settings → Environment Variables." },
+      { status: 500 }
+    );
+  }
+
   const synagogues = await prisma.synagogue.findMany();
 
   try {
