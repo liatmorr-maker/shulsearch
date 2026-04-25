@@ -234,6 +234,28 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
         propertyTitle={property.title}
         propertyAddress={`${property.address}, ${property.city}, ${property.state} ${property.zip}`}
       />
+
+      {/* MLS / IDX Required Property Page Disclaimer */}
+      <div className="border-t border-slate-100 bg-slate-50 px-4 py-6">
+        <div className="mx-auto max-w-5xl space-y-2 text-xs leading-relaxed text-slate-400">
+          <p>
+            Listing data is provided by participating MLSs and may not reflect all real estate
+            activity in the market. Information is deemed reliable but not guaranteed and should
+            be independently verified. The listing broker&apos;s offer of compensation is made only
+            to participants of the MLS where the listing is filed.
+          </p>
+          <p>
+            Distances, travel times, and proximity calculations are approximate and may vary.
+            ShulSearch does not guarantee the accuracy of mapping or location-based results.
+            ShulSearch is not a brokerage and does not represent buyers or sellers.
+          </p>
+          <p>
+            ShulSearch fully supports the Fair Housing Act and all applicable housing laws and
+            does not discriminate based on race, color, religion, sex, national origin,
+            disability, familial status, or any other protected class.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

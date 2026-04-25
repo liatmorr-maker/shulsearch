@@ -24,112 +24,126 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">2. No Brokerage Relationship</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">2. General Use</h2>
           <p>
-            ShulSearch is an information platform only. Use of this website does <strong>not</strong> create
-            a client, agency, fiduciary, or brokerage relationship between you and ShulSearch or
-            any of its operators, employees, or affiliated parties. ShulSearch is not a licensed
-            real estate broker, agent, or salesperson. Nothing on this Site constitutes real
-            estate advice, legal advice, or financial advice.
+            ShulSearch is an independent real estate search platform and is <strong>not</strong> a
+            real estate brokerage. ShulSearch does not provide real estate, legal, financial,
+            or tax advice. All information on this Site is for general informational purposes only.
           </p>
-          <p className="mt-2">
-            All real estate transactions must be conducted through a licensed real estate
-            professional. We strongly encourage you to consult a licensed agent or broker
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">3. No Agency Relationship</h2>
+          <p>
+            Use of this website does not create a brokerage, agency, fiduciary, or client
+            relationship between the user and ShulSearch or any of its operators, employees,
+            or affiliated parties. ShulSearch is not a licensed real estate broker, agent,
+            or salesperson. We strongly encourage you to consult a licensed agent or broker
             before making any real estate decision.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">3. Listing Information &amp; Accuracy</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">4. IDX / MLS Data Disclaimer</h2>
           <p>
-            Property listings displayed on ShulSearch are sourced from third-party providers
-            including MLS feeds, public records, and external APIs. ShulSearch makes no
-            representations or warranties regarding the accuracy, completeness, or timeliness
-            of any listing information, including but not limited to price, availability,
-            square footage, or property features.
+            Listing information displayed on ShulSearch is sourced from participating Multiple
+            Listing Services (MLS) and/or third-party providers. All listing data is deemed
+            reliable but not guaranteed and is subject to errors, omissions, price changes,
+            prior sale or lease, or withdrawal without notice. Not all properties available
+            for sale or lease may be displayed.
           </p>
           <p className="mt-2">
-            Listing data may be subject to change without notice. Always verify information
-            directly with the listing agent or seller before relying on it.
+            Listing data may not reflect all real estate activity in the market. Information
+            should be independently verified before relying on it.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">4. Synagogue Location Data</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">5. Broker Attribution</h2>
           <p>
-            Synagogue locations, distances, denominations, and related information displayed
-            on this Site are provided for general informational purposes only. ShulSearch does
-            not guarantee the accuracy of synagogue locations, hours of service, denominational
-            affiliations, or any other synagogue data. Users should independently verify all
-            synagogue information before relying on it.
+            Each property listing is attributed to the listing broker as required by MLS rules.
+            ShulSearch does not claim ownership of listing data and displays such data in
+            accordance with MLS licensing agreements. The listing broker&apos;s offer of
+            compensation is made only to participants of the MLS where the listing is filed.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">5. Third-Party Links &amp; Services</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">6. Fair Housing Compliance</h2>
+          <p>
+            ShulSearch fully supports the <strong>Fair Housing Act</strong> and all applicable
+            federal, state, and local housing laws. ShulSearch does not discriminate and will
+            not facilitate discrimination based on race, color, religion, sex, national origin,
+            disability, familial status, or any other protected class.
+          </p>
+          <p className="mt-2">
+            ShulSearch does not recommend, rank, or steer users toward or away from any
+            neighborhood or property based on religion, ethnicity, or any other protected
+            characteristic. Any proximity-based search tools — including distance to places
+            of worship or community locations — are <strong>user-initiated</strong> and
+            provided for informational purposes only. Users are solely responsible for
+            the choices they make using these tools.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">7. Synagogue &amp; Location Data</h2>
+          <p>
+            Synagogue locations, distances, denominations, and related information are provided
+            for general informational purposes only. ShulSearch does not guarantee the accuracy
+            of synagogue locations, hours of service, or denominational affiliations. Distances,
+            travel times, and proximity calculations are approximate and may vary. Users should
+            independently verify all synagogue and location information before relying on it.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">8. Third-Party Links &amp; Services</h2>
           <p>
             The Site may contain links to or integrations with third-party websites, services,
-            or professionals (including listing providers, mapping services, and mortgage
-            calculators). ShulSearch does not control, endorse, or assume responsibility for
-            any third-party content, products, services, or practices. Use of third-party
+            or professionals. ShulSearch does not control, endorse, or assume responsibility
+            for any third-party content, products, services, or practices. Use of third-party
             services is at your own risk and subject to their respective terms and policies.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">6. User Accounts</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">9. User Accounts</h2>
           <p>
-            You may create an account to access certain features such as saving favorite
-            listings. You are responsible for maintaining the confidentiality of your login
-            credentials and for all activities that occur under your account. You agree to
-            provide accurate information and to notify us immediately of any unauthorized use
-            of your account.
+            You may create an account to save listings and access certain features. You are
+            responsible for maintaining the confidentiality of your login credentials and for
+            all activities under your account. You agree to provide accurate information and
+            notify us immediately of any unauthorized use of your account.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">7. Prohibited Use</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">10. Prohibited Use</h2>
           <p>You agree not to:</p>
           <ul className="mt-2 list-disc space-y-1 pl-6">
             <li>Use the Site for any unlawful purpose</li>
-            <li>Scrape, harvest, or systematically download listing data</li>
+            <li>Scrape, harvest, or systematically download listing or synagogue data</li>
             <li>Attempt to gain unauthorized access to any part of the Site</li>
             <li>Transmit spam, malware, or harmful content</li>
             <li>Misrepresent your identity or affiliation</li>
             <li>Interfere with the Site&apos;s operation or infrastructure</li>
+            <li>Use the Site in any way that violates Fair Housing laws</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">8. Intellectual Property</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">11. Intellectual Property</h2>
           <p>
-            All content on ShulSearch — including but not limited to its name, logo, design,
-            software, and original text — is the property of ShulSearch and protected by
-            applicable intellectual property laws. You may not reproduce, distribute, or
-            create derivative works without our prior written consent.
-          </p>
-          <p className="mt-2">
-            Listing photos and property data remain the property of their respective owners
-            and are displayed under license from third-party providers.
+            All original content on ShulSearch — including its name, logo, design, software,
+            and original text — is the property of ShulSearch and protected by applicable
+            intellectual property laws. You may not reproduce, distribute, or create derivative
+            works without prior written consent. Listing photos and property data remain the
+            property of their respective owners and are displayed under license.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">9. Limitation of Liability</h2>
-          <p>
-            To the fullest extent permitted by law, ShulSearch, its operators, employees, and
-            affiliates shall not be liable for any direct, indirect, incidental, special,
-            consequential, or punitive damages arising out of or related to your use of — or
-            inability to use — this Site or any content or services provided herein, even if
-            advised of the possibility of such damages.
-          </p>
-          <p className="mt-2">
-            Your sole remedy for dissatisfaction with the Site is to stop using it.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">10. Disclaimer of Warranties</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">12. Disclaimer of Warranties</h2>
           <p>
             The Site and all content are provided &quot;as is&quot; and &quot;as available&quot; without warranties
             of any kind, either express or implied, including but not limited to warranties of
@@ -138,7 +152,19 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">11. Governing Law</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">13. Limitation of Liability</h2>
+          <p>
+            To the fullest extent permitted by law, ShulSearch, its operators, employees, and
+            affiliates shall not be liable for any direct, indirect, incidental, special,
+            consequential, or punitive damages arising out of or related to your use of — or
+            inability to use — this Site or any content or services provided herein, including
+            but not limited to reliance on listing data, synagogue location data, or
+            proximity calculations.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">14. Governing Law</h2>
           <p>
             These Terms shall be governed by and construed in accordance with the laws of the
             State of Florida, without regard to its conflict of law provisions. Any disputes
@@ -148,7 +174,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">12. Contact</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">15. Contact</h2>
           <p>
             For questions about these Terms, please contact us at{" "}
             <a href="mailto:info@shulsearch.com" className="text-blue-500 hover:underline">

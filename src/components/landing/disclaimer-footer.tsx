@@ -5,26 +5,46 @@ export function DisclaimerFooter() {
     <footer className="border-t border-slate-200 bg-white px-4 py-8">
       <div className="mx-auto max-w-4xl space-y-4 text-center text-xs leading-relaxed text-slate-500">
 
+        {/* IDX / MLS Required Footer */}
         <p>
-          <span className="font-semibold text-slate-600">No Brokerage Relationship</span>
-          <br />
-          Use of this website does not create a client, agency, or brokerage relationship between the user and ShulSearch or any affiliated parties.
+          ShulSearch is an independent real estate search platform. Listing information is
+          provided by participating Multiple Listing Services (MLS) and is deemed reliable
+          but not guaranteed. Listings are subject to errors, omissions, or changes without notice.
         </p>
 
         <p>
-          <span className="font-semibold text-slate-600">Third-Party Links &amp; Services</span>
-          <br />
-          ShulSearch may include links to third-party websites, services, or professionals. We do not control or endorse these third parties and are not responsible for their content, services, or practices.
+          ShulSearch fully complies with the{" "}
+          <strong className="text-slate-600">Fair Housing Act</strong> and all applicable
+          housing laws. ShulSearch does not recommend, rank, or steer users toward or away
+          from any neighborhood or property based on religion, ethnicity, or any protected class.
+          Proximity-based search tools are user-initiated and provided for informational purposes only.
         </p>
 
         <p>
-          <span className="font-semibold text-slate-600">Limitation of Liability</span>
-          <br />
-          ShulSearch shall not be held liable for any direct, indirect, incidental, or consequential damages arising from the use of this website or reliance on any information provided herein.
+          ShulSearch is not a brokerage and does not represent buyers or sellers.
+          Use of this website does not create a client, agency, or brokerage relationship
+          between the user and ShulSearch or any affiliated parties.
         </p>
 
         <p>
-          ShulSearch is committed to ensuring digital accessibility for individuals with disabilities. We are continuously working to improve the accessibility of our web experience for everyone, and we welcome feedback and accommodation requests. If you wish to report an issue or seek an accommodation, please{" "}
+          <span className="font-semibold text-slate-600">Third-Party Links &amp; Services — </span>
+          ShulSearch may include links to third-party websites or professionals. We do not
+          control or endorse these third parties and are not responsible for their content,
+          services, or practices.
+        </p>
+
+        <p>
+          <span className="font-semibold text-slate-600">Limitation of Liability — </span>
+          ShulSearch shall not be held liable for any direct, indirect, incidental, or
+          consequential damages arising from the use of this website or reliance on any
+          information provided herein.
+        </p>
+
+        <p>
+          ShulSearch is committed to ensuring digital accessibility for individuals with
+          disabilities. We are continuously working to improve the accessibility of our
+          web experience for everyone, and we welcome feedback and accommodation requests.
+          If you wish to report an issue or seek an accommodation, please{" "}
           <a
             href="mailto:info@shulsearch.com"
             className="text-blue-500 underline-offset-2 hover:underline"
