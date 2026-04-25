@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, MapPin, Menu, Search, X, LogOut } from "lucide-react";
+import { Heart, MapPin, Menu, Search, X, LogOut, LayoutGrid } from "lucide-react";
 import { useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -16,141 +16,175 @@ export function Navbar() {
   const isAdmin = user?.primaryEmailAddress?.emailAddress === "liatmorr@gmail.com";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center">
-          <span className="text-2xl font-extrabold tracking-tight">
-            <span className="text-slate-900">Shul</span><span className="text-[#0ea5e9]">Search</span>
-          </span>
-        </Link>
+    <>
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            <span className="text-2xl font-extrabold tracking-tight">
+              <span className="text-slate-900">Shul</span><span className="text-[#0ea5e9]">Search</span>
+            </span>
+          </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          <NavLink href="/results" active={pathname === "/results" && !pathname.includes("city")}>
-            <MapPin className="h-3.5 w-3.5" /> Browse
-          </NavLink>
-          <NavLink href="/near" active={pathname === "/near"}>
-            <Search className="h-3.5 w-3.5" /> Shul Search
-          </NavLink>
-          <NavLink href="/favorites" active={pathname === "/favorites"}>
-            <Heart className="h-3.5 w-3.5" /> Saved
-          </NavLink>
-          {isAdmin && (
-            <NavLink href="/admin" active={pathname.startsWith("/admin")}>
-              Admin
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            <NavLink href="/results" active={pathname === "/results"}>
+              <MapPin className="h-3.5 w-3.5" /> Browse
             </NavLink>
+            <NavLink href="/near" active={pathname === "/near"}>
+              <Search className="h-3.5 w-3.5" /> Shul Search
+            </NavLink>
+            <NavLink href="/favorites" active={pathname === "/favorites"}>
+              <Heart className="h-3.5 w-3.5" /> Saved
+            </NavLink>
+            {isAdmin && (
+              <NavLink href="/admin" active={pathname.startsWith("/admin")}>
+                Admin
+              </NavLink>
+            )}
+          </nav>
+
+          {/* Auth — signed out */}
+          {!isSignedIn && (
+            <div className="hidden md:flex items-center gap-3">
+              <Link href="/sign-in">
+                <Button variant="ghost" size="sm">Sign In</Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button size="sm">Get Started</Button>
+              </Link>
+            </div>
           )}
-        </nav>
 
-        {/* Auth — signed out */}
-        {!isSignedIn && (
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/sign-in">
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button size="sm">Get Started</Button>
-            </Link>
-          </div>
-        )}
+          {/* Auth — signed in (desktop) */}
+          {isSignedIn && (
+            <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {user?.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.imageUrl}
+                    alt={user.firstName ?? ""}
+                    className="h-8 w-8 rounded-full object-cover border border-slate-200"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">
+                    {user?.firstName?.[0] ?? "U"}
+                  </div>
+                )}
+                <span className="text-sm font-medium text-slate-700">
+                  {user?.firstName ?? "Account"}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-slate-500 hover:text-red-600"
+                onClick={() => signOut({ redirectUrl: "/" })}
+              >
+                <LogOut className="h-4 w-4" /> Sign Out
+              </Button>
+            </div>
+          )}
 
-        {/* Auth — signed in */}
-        {isSignedIn && (
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              {user?.imageUrl ? (
+          {/* Mobile: auth avatar + hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            {isSignedIn && (
+              user?.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.imageUrl}
-                  alt={user.firstName ?? ""}
+                  alt=""
                   className="h-8 w-8 rounded-full object-cover border border-slate-200"
                 />
               ) : (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">
                   {user?.firstName?.[0] ?? "U"}
                 </div>
-              )}
-              <span className="text-sm font-medium text-slate-700">
-                {user?.firstName ?? "Account"}
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-slate-500 hover:text-red-600"
-              onClick={() => signOut({ redirectUrl: "/" })}
+              )
+            )}
+            <button
+              className="p-2 rounded-lg hover:bg-[var(--accent)]"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="Toggle menu"
             >
-              <LogOut className="h-4 w-4" /> Sign Out
-            </Button>
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile dropdown menu */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-[var(--border)] bg-white px-4 pb-4 pt-2">
+            {isSignedIn && (
+              <div className="flex items-center gap-3 px-3 py-3 mb-2 border-b border-slate-100">
+                {user?.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.imageUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                    {user?.firstName?.[0] ?? "U"}
+                  </div>
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">{user?.firstName} {user?.lastName}</div>
+                  <div className="text-xs text-slate-500">{user?.primaryEmailAddress?.emailAddress}</div>
+                </div>
+              </div>
+            )}
+            <nav className="flex flex-col gap-1">
+              {isAdmin && (
+                <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
+                  Admin
+                </MobileNavLink>
+              )}
+              {!isSignedIn ? (
+                <>
+                  <MobileNavLink href="/sign-in" onClick={() => setMobileOpen(false)}>
+                    Sign In
+                  </MobileNavLink>
+                  <MobileNavLink href="/sign-up" onClick={() => setMobileOpen(false)}>
+                    Get Started
+                  </MobileNavLink>
+                </>
+              ) : (
+                <button
+                  onClick={() => { setMobileOpen(false); signOut({ redirectUrl: "/" }); }}
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 text-left flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </button>
+              )}
+            </nav>
           </div>
         )}
+      </header>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden p-2 rounded-lg hover:bg-[var(--accent)]"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
+      {/* Mobile bottom tab bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] bg-white flex items-center">
+        <BottomTab href="/results" icon={<LayoutGrid className="h-5 w-5" />} label="Browse" active={pathname === "/results"} />
+        <BottomTab href="/near" icon={<Search className="h-5 w-5" />} label="Shul Search" active={pathname === "/near"} />
+        <BottomTab href="/favorites" icon={<Heart className="h-5 w-5" />} label="Saved" active={pathname === "/favorites"} />
+      </nav>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-[var(--border)] bg-white px-4 pb-4 pt-2">
-          {isSignedIn && (
-            <div className="flex items-center gap-3 px-3 py-3 mb-2 border-b border-slate-100">
-              {user?.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.imageUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
-                  {user?.firstName?.[0] ?? "U"}
-                </div>
-              )}
-              <div>
-                <div className="text-sm font-semibold text-slate-900">{user?.firstName} {user?.lastName}</div>
-                <div className="text-xs text-slate-500">{user?.primaryEmailAddress?.emailAddress}</div>
-              </div>
-            </div>
-          )}
-          <nav className="flex flex-col gap-1">
-            <MobileNavLink href="/results" onClick={() => setMobileOpen(false)}>
-              Browse Listings
-            </MobileNavLink>
-            <MobileNavLink href="/near" onClick={() => setMobileOpen(false)}>
-              Shul Search
-            </MobileNavLink>
-            <MobileNavLink href="/favorites" onClick={() => setMobileOpen(false)}>
-              Saved
-            </MobileNavLink>
-            {isAdmin && (
-              <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
-                Admin
-              </MobileNavLink>
-            )}
-            {!isSignedIn ? (
-              <>
-                <MobileNavLink href="/sign-in" onClick={() => setMobileOpen(false)}>
-                  Sign In
-                </MobileNavLink>
-                <MobileNavLink href="/sign-up" onClick={() => setMobileOpen(false)}>
-                  Get Started
-                </MobileNavLink>
-              </>
-            ) : (
-              <button
-                onClick={() => { setMobileOpen(false); signOut({ redirectUrl: "/" }); }}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 text-left flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" /> Sign Out
-              </button>
-            )}
-          </nav>
-        </div>
+      {/* Spacer so content isn't hidden behind bottom tab bar on mobile */}
+      <div className="md:hidden h-16" />
+    </>
+  );
+}
+
+function BottomTab({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors",
+        active ? "text-[var(--primary)]" : "text-slate-500"
       )}
-    </header>
+    >
+      {icon}
+      {label}
+    </Link>
   );
 }
 
