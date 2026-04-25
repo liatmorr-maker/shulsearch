@@ -113,6 +113,13 @@ export function Navbar() {
           </div>
         </div>
 
+        {/* Mobile top tab row */}
+        <nav className="md:hidden flex border-t border-[var(--border)]">
+          <TopTab href="/results" icon={<LayoutGrid className="h-4 w-4" />} label="Browse" active={pathname === "/results"} />
+          <TopTab href="/near" icon={<Search className="h-4 w-4" />} label="Shul Search" active={pathname === "/near"} />
+          <TopTab href="/favorites" icon={<Heart className="h-4 w-4" />} label="Saved" active={pathname === "/favorites"} />
+        </nav>
+
         {/* Mobile dropdown menu */}
         {mobileOpen && (
           <div className="md:hidden border-t border-[var(--border)] bg-white px-4 pb-4 pt-2">
@@ -160,26 +167,17 @@ export function Navbar() {
         )}
       </header>
 
-      {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] bg-white flex items-center">
-        <BottomTab href="/results" icon={<LayoutGrid className="h-5 w-5" />} label="Browse" active={pathname === "/results"} />
-        <BottomTab href="/near" icon={<Search className="h-5 w-5" />} label="Shul Search" active={pathname === "/near"} />
-        <BottomTab href="/favorites" icon={<Heart className="h-5 w-5" />} label="Saved" active={pathname === "/favorites"} />
-      </nav>
-
-      {/* Spacer so content isn't hidden behind bottom tab bar on mobile */}
-      <div className="md:hidden h-16" />
     </>
   );
 }
 
-function BottomTab({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
+function TopTab({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors",
-        active ? "text-[var(--primary)]" : "text-slate-500"
+        "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors border-b-2",
+        active ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-slate-500"
       )}
     >
       {icon}
