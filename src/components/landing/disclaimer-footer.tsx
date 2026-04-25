@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function DisclaimerFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white px-4 py-8">
@@ -32,7 +34,13 @@ export function DisclaimerFooter() {
           .
         </p>
 
-        <p className="pt-2 text-slate-400">
+        <div className="flex items-center justify-center gap-4 pt-2">
+          <Link href="/terms" className="text-blue-500 hover:underline">Terms of Service</Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/privacy" className="text-blue-500 hover:underline">Privacy Policy</Link>
+        </div>
+
+        <p className="text-slate-400">
           © {new Date().getFullYear()} ShulSearch. All rights reserved.
         </p>
 
