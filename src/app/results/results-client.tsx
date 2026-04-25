@@ -285,8 +285,8 @@ export function ResultsClient({
               setHighlightedId(id);
               setMobileView("list");
             }}
-            center={[-80.13, 25.96]}
-            zoom={12}
+            center={[-80.20, 26.10]}
+            zoom={searchParams.q ?? searchParams.city ?? searchParams.zip ? 12 : 10}
           />
         </div>
       </div>

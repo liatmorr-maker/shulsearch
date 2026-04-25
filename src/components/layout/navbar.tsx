@@ -27,7 +27,7 @@ export function Navbar() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          <NavLink href="/results?city=Aventura" active={false}>
+          <NavLink href="/results" active={pathname === "/results" && !pathname.includes("city")}>
             <MapPin className="h-3.5 w-3.5" /> Browse
           </NavLink>
           <NavLink href="/near" active={pathname === "/near"}>
@@ -116,7 +116,7 @@ export function Navbar() {
             </div>
           )}
           <nav className="flex flex-col gap-1">
-            <MobileNavLink href="/results?city=Aventura" onClick={() => setMobileOpen(false)}>
+            <MobileNavLink href="/results" onClick={() => setMobileOpen(false)}>
               Browse Listings
             </MobileNavLink>
             <MobileNavLink href="/near" onClick={() => setMobileOpen(false)}>
