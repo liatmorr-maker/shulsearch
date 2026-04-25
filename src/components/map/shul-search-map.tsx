@@ -31,6 +31,7 @@ export function ShulSearchMap({
 
   // React-managed popup state
   const [popupProperty, setPopupProperty] = useState<MockProperty | null>(null);
+  const [popupSynagogue, setPopupSynagogue] = useState<MockSynagogue | null>(null);
 
   // ── Initialize map once ────────────────────────────────────────────────────
   useEffect(() => {
@@ -176,9 +177,15 @@ export function ShulSearchMap({
         .setLngLat([syn.lng, syn.lat])
         .addTo(map);
 
-      // Show popup on hover, hide when mouse leaves
+      // Desktop: show native popup on hover
       el.addEventListener("mouseenter", () => popup.setLngLat([syn.lng, syn.lat]).addTo(map));
       el.addEventListener("mouseleave", () => popup.remove());
+      // Mobile: show React card on click/tap
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setPopupSynagogue((prev) => (prev?.id === syn.id ? null : syn));
+        setPopupProperty(null);
+      });
 
       synMarkersRef.current.push(marker);
     });
@@ -188,7 +195,7 @@ export function ShulSearchMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const handler = () => setPopupProperty(null);
+    const handler = () => { setPopupProperty(null); setPopupSynagogue(null); };
     map.on("click", handler);
     return () => { map.off("click", handler); };
   }, [mapRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -282,6 +289,53 @@ export function ShulSearchMap({
             >
               View Listing →
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ── React-managed synagogue popup card ─────────────────────────────── */}
+      {popupSynagogue && (
+        <div
+          className="absolute bottom-6 right-4 z-20 w-72 overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => setPopupSynagogue(null)}
+            className="absolute right-2 top-2 z-10 rounded-full bg-black/30 p-1 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Header */}
+          <div className="bg-[#1a56db] px-4 py-3 flex items-center gap-2">
+            <span className="text-white text-lg">✡</span>
+            <span className="text-white font-bold text-sm leading-tight">{popupSynagogue.name}</span>
+          </div>
+
+          {/* Details */}
+          <div className="p-4 space-y-2 text-sm">
+            <div className="text-slate-500 text-xs font-semibold uppercase tracking-wide">
+              {DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}
+            </div>
+            <div className="text-slate-700">{popupSynagogue.address}, {popupSynagogue.city}, {popupSynagogue.state}</div>
+            {popupSynagogue.phone && (
+              <a href={`tel:${popupSynagogue.phone}`} className="block text-blue-600 hover:underline">
+                {popupSynagogue.phone}
+              </a>
+            )}
+            {popupSynagogue.website && (
+              <a href={popupSynagogue.website} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">
+                {popupSynagogue.website.replace(/^https?:\/\//, "")}
+              </a>
+            )}
+            <div className="pt-1">
+              <Link
+                href={`/synagogue/${popupSynagogue.id}`}
+                className="block w-full rounded-lg bg-blue-600 py-2 text-center text-xs font-bold text-white hover:bg-blue-700 transition-colors"
+              >
+                View Synagogue →
+              </Link>
+            </div>
           </div>
         </div>
       )}
