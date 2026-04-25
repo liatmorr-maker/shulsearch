@@ -5,7 +5,7 @@ const STEPS = [
     icon: MapPin,
     color: "bg-blue-100 text-blue-700",
     title: "Search Your Area",
-    desc: "Enter a city, zip, or neighborhood. We'll find properties and map every synagogue nearby.",
+    desc: "Enter a city, zip, or neighborhood to explore available properties and view nearby synagogues on the map.",
   },
   {
     icon: SlidersHorizontal,
