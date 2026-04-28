@@ -98,10 +98,14 @@ export function ResultsClient({
       results = results.filter((p) => p.listingType === listingType);
     }
 
-    if (worshipType === "SYNAGOGUE" && maxDistanceMi !== null) {
-      results = results.filter(
-        (p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi
-      );
+    if (maxDistanceMi !== null) {
+      if (worshipType === "SYNAGOGUE") {
+        results = results.filter((p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi);
+      } else if (worshipType === "CHURCH") {
+        results = results.filter((p) => p.nearestChurchDist != null && p.nearestChurchDist <= maxDistanceMi);
+      } else if (worshipType === "MOSQUE") {
+        results = results.filter((p) => p.nearestMosqueDist != null && p.nearestMosqueDist <= maxDistanceMi);
+      }
     }
 
     results = results.filter((p) => p.price >= priceMin && p.price <= priceMax);
@@ -159,9 +163,9 @@ export function ResultsClient({
   }, [filtered]);
 
   const visibleSynagogues = useMemo(
-    () => worshipType === "SYNAGOGUE"
-      ? initialSynagogues.filter((s) => visibleSynagogueIds.has(s.id))
-      : [],
+    () => initialSynagogues.filter(
+      (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === worshipType
+    ),
     [initialSynagogues, visibleSynagogueIds, worshipType]
   );
 

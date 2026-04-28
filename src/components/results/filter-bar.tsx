@@ -278,19 +278,15 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
             <p className="mb-2 text-sm font-semibold text-slate-700">
               Distance to {WORSHIP_TYPES.find((w) => w.value === worshipType)?.label}
             </p>
-            {isSynagogue ? (
-              <div className="flex flex-wrap gap-2">
-                {DISTANCE_OPTIONS.map((d) => (
-                  <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
-                    className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-                      maxDistanceMi === d.value ? "border-blue-600 bg-blue-600 text-white" : "border-[var(--border)] bg-white text-slate-600")}>
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400">Distance filtering is currently available for synagogues only. Church &amp; mosque proximity coming soon.</p>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {DISTANCE_OPTIONS.map((d) => (
+                <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
+                  className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                    maxDistanceMi === d.value ? "border-blue-600 bg-blue-600 text-white" : "border-[var(--border)] bg-white text-slate-600")}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Price */}
@@ -518,21 +514,15 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
             ))}
           </div>
 
-          {isSynagogue ? (
-            <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
-              {DISTANCE_OPTIONS.map((d) => (
-                <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
-                  className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
-                    maxDistanceMi === d.value ? "bg-[var(--primary)] text-white" : "bg-white text-slate-600 hover:bg-slate-50")}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-8 items-center rounded-lg border border-[var(--border)] bg-slate-50 px-3 text-xs text-slate-400">
-              Distance filter — synagogue data only
-            </div>
-          )}
+          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
+            {DISTANCE_OPTIONS.map((d) => (
+              <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
+                className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
+                  maxDistanceMi === d.value ? "bg-[var(--primary)] text-white" : "bg-white text-slate-600 hover:bg-slate-50")}>
+                {d.label}
+              </button>
+            ))}
+          </div>
 
           <PriceFilter />
           <HomeTypeFilter />

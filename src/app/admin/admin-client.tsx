@@ -118,6 +118,8 @@ export function AdminClient({ initialProperties, synagogues, leads: initialLeads
   const [syncResult, setSyncResult]   = useState<{ totalImported: number; realtor?: { imported: number }; zillow?: { imported: number } } | null>(null);
   const [seedingShuls, setSeedingShuls] = useState(false);
   const [seedResult, setSeedResult]   = useState<string | null>(null);
+  const [seedingWorship, setSeedingWorship] = useState(false);
+  const [worshipSeedResult, setWorshipSeedResult] = useState<string | null>(null);
 
   // ── Derived lists ─────────────────────────────────────────────
 
@@ -178,6 +180,21 @@ export function AdminClient({ initialProperties, synagogues, leads: initialLeads
       setProperties((prev) =>
         prev.map((p) => (p.id === id ? { ...p, isApproved: !currentValue } : p))
       );
+    }
+  }
+
+  async function seedWorshipPlaces() {
+    setSeedingWorship(true);
+    setWorshipSeedResult(null);
+    try {
+      const res = await fetch("/api/admin/seed-worship-places", { method: "POST" });
+      const data = await res.json();
+      if (data.error) { setWorshipSeedResult(`Error: ${data.error}`); return; }
+      setWorshipSeedResult(`✓ ${data.churches} churches + ${data.mosques} mosques seeded`);
+    } catch {
+      setWorshipSeedResult("Error — check console");
+    } finally {
+      setSeedingWorship(false);
     }
   }
 
@@ -257,6 +274,9 @@ export function AdminClient({ initialProperties, synagogues, leads: initialLeads
           <p className="text-sm text-slate-500">Manage synagogues, listings, leads, and users</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          {worshipSeedResult && (
+            <span className="text-sm text-emerald-600 font-medium">{worshipSeedResult}</span>
+          )}
           {seedResult && (
             <span className="text-sm text-blue-600 font-medium">✡ {seedResult}</span>
           )}
@@ -265,6 +285,10 @@ export function AdminClient({ initialProperties, synagogues, leads: initialLeads
               ✓ {syncResult.totalImported ?? 0} imported
             </span>
           )}
+          <Button onClick={seedWorshipPlaces} disabled={seedingWorship} variant="outline" className="gap-2">
+            <Building2 className={cn("h-4 w-4", seedingWorship && "animate-spin")} />
+            {seedingWorship ? "Seeding…" : "Seed Churches & Mosques"}
+          </Button>
           <Button onClick={seedSynagogues} disabled={seedingShuls} variant="outline" className="gap-2">
             <Building2 className={cn("h-4 w-4", seedingShuls && "animate-spin")} />
             {seedingShuls ? "Adding Shuls…" : "Add Davie & Cooper City Shuls"}
