@@ -64,7 +64,7 @@ export function ResultsClient({
   );
 
   const {
-    listingType, maxDistanceMi, priceMin, priceMax,
+    listingType, worshipType, maxDistanceMi, priceMin, priceMax,
     bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery,
   } = useFilterStore();
 
@@ -98,7 +98,7 @@ export function ResultsClient({
       results = results.filter((p) => p.listingType === listingType);
     }
 
-    if (maxDistanceMi !== null) {
+    if (worshipType === "SYNAGOGUE" && maxDistanceMi !== null) {
       results = results.filter(
         (p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi
       );
@@ -114,7 +114,7 @@ export function ResultsClient({
       results = results.filter((p) => p.baths >= bathsMin);
     }
 
-    if (denomination !== "ALL") {
+    if (worshipType === "SYNAGOGUE" && denomination !== "ALL") {
       results = results.filter((p) =>
         p.synagogueDistances?.some((sd) => sd.synagogue.denomination === denomination)
       );
@@ -148,7 +148,7 @@ export function ResultsClient({
 
     return results;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialProperties, listingType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
+  }, [initialProperties, listingType, worshipType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
 
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
@@ -159,8 +159,10 @@ export function ResultsClient({
   }, [filtered]);
 
   const visibleSynagogues = useMemo(
-    () => initialSynagogues.filter((s) => visibleSynagogueIds.has(s.id)),
-    [initialSynagogues, visibleSynagogueIds]
+    () => worshipType === "SYNAGOGUE"
+      ? initialSynagogues.filter((s) => visibleSynagogueIds.has(s.id))
+      : [],
+    [initialSynagogues, visibleSynagogueIds, worshipType]
   );
 
   const searchLabel =

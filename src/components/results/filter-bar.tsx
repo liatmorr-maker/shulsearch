@@ -5,8 +5,14 @@ import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useFilterStore, type DistanceFilter, type ListingType, type Denomination, type FilterState, HOME_TYPES, ALL_HOME_TYPES, type HomeTypeLabel } from "@/store/filter-store";
+import { useFilterStore, type DistanceFilter, type ListingType, type Denomination, type FilterState, type WorshipType, HOME_TYPES, ALL_HOME_TYPES, type HomeTypeLabel } from "@/store/filter-store";
 import { DENOMINATION_LABELS } from "@/lib/utils";
+
+const WORSHIP_TYPES: { label: string; emoji: string; value: WorshipType }[] = [
+  { label: "Synagogue", emoji: "✡", value: "SYNAGOGUE" },
+  { label: "Church",    emoji: "✝", value: "CHURCH" },
+  { label: "Mosque",    emoji: "☪", value: "MOSQUE" },
+];
 
 const DISTANCE_OPTIONS: { label: string; value: DistanceFilter }[] = [
   { label: "Any distance", value: null },
@@ -185,6 +191,7 @@ function HomeTypeFilter() {
 function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const {
     listingType, setListingType,
+    worshipType, setWorshipType,
     maxDistanceMi, setMaxDistance,
     bedsMin, setBedsMin,
     bathsMin, setBathsMin,
@@ -194,6 +201,7 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
     homeTypes, setHomeTypes,
     reset,
   } = useFilterStore();
+  const isSynagogue = worshipType === "SYNAGOGUE";
 
   const [minInput, setMinInput] = useState("");
   const [maxInput, setMaxInput] = useState("");
@@ -237,6 +245,20 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         <div className="px-4 py-4 space-y-6">
+          {/* Worship Type */}
+          <div>
+            <p className="mb-2 text-sm font-semibold text-slate-700">Find homes near a…</p>
+            <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
+              {WORSHIP_TYPES.map((w) => (
+                <button key={w.value} onClick={() => setWorshipType(w.value)}
+                  className={cn("flex-1 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5",
+                    worshipType === w.value ? "bg-[var(--primary)] text-white" : "bg-white text-slate-600")}>
+                  <span>{w.emoji}</span> {w.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Listing Type */}
           <div>
             <p className="mb-2 text-sm font-semibold text-slate-700">Listing Type</p>
@@ -253,16 +275,22 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
 
           {/* Distance */}
           <div>
-            <p className="mb-2 text-sm font-semibold text-slate-700">Distance to Shul</p>
-            <div className="flex flex-wrap gap-2">
-              {DISTANCE_OPTIONS.map((d) => (
-                <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
-                  className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-                    maxDistanceMi === d.value ? "border-blue-600 bg-blue-600 text-white" : "border-[var(--border)] bg-white text-slate-600")}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
+            <p className="mb-2 text-sm font-semibold text-slate-700">
+              Distance to {WORSHIP_TYPES.find((w) => w.value === worshipType)?.label}
+            </p>
+            {isSynagogue ? (
+              <div className="flex flex-wrap gap-2">
+                {DISTANCE_OPTIONS.map((d) => (
+                  <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
+                    className={cn("rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                      maxDistanceMi === d.value ? "border-blue-600 bg-blue-600 text-white" : "border-[var(--border)] bg-white text-slate-600")}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">Distance filtering is currently available for synagogues only. Church &amp; mosque proximity coming soon.</p>
+            )}
           </div>
 
           {/* Price */}
@@ -329,20 +357,22 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
             </div>
           </div>
 
-          {/* Denomination */}
-          <div>
-            <p className="mb-2 text-sm font-semibold text-slate-700">Synagogue Denomination</p>
-            <Select value={denomination} onValueChange={(v) => setDenomination(v as Denomination)}>
-              <SelectTrigger className="h-11 w-full text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DENOMINATIONS.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Denomination — synagogue only */}
+          {isSynagogue && (
+            <div>
+              <p className="mb-2 text-sm font-semibold text-slate-700">Synagogue Denomination</p>
+              <Select value={denomination} onValueChange={(v) => setDenomination(v as Denomination)}>
+                <SelectTrigger className="h-11 w-full text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DENOMINATIONS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Sort */}
           <div>
@@ -380,6 +410,7 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const {
     listingType, setListingType,
+    worshipType, setWorshipType,
     maxDistanceMi, setMaxDistance,
     bedsMin, setBedsMin,
     bathsMin, setBathsMin,
@@ -389,6 +420,8 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
     priceMin, priceMax,
     homeTypes,
   } = useFilterStore();
+
+  const isSynagogue = worshipType === "SYNAGOGUE";
 
   const activeFilterCount = [
     listingType !== "ALL",
@@ -405,6 +438,25 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
       <MobileFilterSheet open={mobileSheetOpen} onClose={() => setMobileSheetOpen(false)} />
 
       <div className="sticky top-16 z-40 border-b border-[var(--border)] bg-white shadow-sm">
+
+        {/* ── Worship type bar ── */}
+        <div className="flex items-center justify-center gap-1 border-b border-[var(--border)] bg-slate-50 px-4 py-2">
+          <span className="mr-2 text-xs font-medium text-slate-500">Find homes near:</span>
+          {WORSHIP_TYPES.map((w) => (
+            <button
+              key={w.value}
+              onClick={() => setWorshipType(w.value)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                worshipType === w.value
+                  ? "bg-[var(--primary)] text-white shadow-sm"
+                  : "bg-white text-slate-600 border border-[var(--border)] hover:bg-slate-100"
+              )}
+            >
+              <span>{w.emoji}</span> {w.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Mobile bar ── */}
         <div className="flex items-center gap-2 px-4 py-2 md:hidden">
@@ -466,15 +518,21 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
             ))}
           </div>
 
-          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
-            {DISTANCE_OPTIONS.map((d) => (
-              <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
-                className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
-                  maxDistanceMi === d.value ? "bg-[var(--primary)] text-white" : "bg-white text-slate-600 hover:bg-slate-50")}>
-                {d.label}
-              </button>
-            ))}
-          </div>
+          {isSynagogue ? (
+            <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
+              {DISTANCE_OPTIONS.map((d) => (
+                <button key={String(d.value)} onClick={() => setMaxDistance(d.value)}
+                  className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
+                    maxDistanceMi === d.value ? "bg-[var(--primary)] text-white" : "bg-white text-slate-600 hover:bg-slate-50")}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-8 items-center rounded-lg border border-[var(--border)] bg-slate-50 px-3 text-xs text-slate-400">
+              Distance filter — synagogue data only
+            </div>
+          )}
 
           <PriceFilter />
           <HomeTypeFilter />
@@ -501,14 +559,16 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
             ))}
           </div>
 
-          <Select value={denomination} onValueChange={(v) => setDenomination(v as Denomination)}>
-            <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {DENOMINATIONS.map((d) => (
-                <SelectItem key={d.value} value={d.value} className="text-xs">{d.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isSynagogue && (
+            <Select value={denomination} onValueChange={(v) => setDenomination(v as Denomination)}>
+              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {DENOMINATIONS.map((d) => (
+                  <SelectItem key={d.value} value={d.value} className="text-xs">{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as FilterState["sortBy"])}>
             <SelectTrigger className="h-8 w-40 text-xs ml-auto"><SelectValue /></SelectTrigger>
