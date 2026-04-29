@@ -31,8 +31,8 @@ export function Navbar() {
             <NavLink href="/results" active={pathname === "/results"}>
               <MapPin className="h-3.5 w-3.5" /> Browse
             </NavLink>
-            <NavLink href="/near" active={pathname === "/near"}>
-              <Search className="h-3.5 w-3.5" /> Shul Search
+            <NavLink href="/results" active={false}>
+              <Search className="h-3.5 w-3.5" /> Search
             </NavLink>
             <NavLink href="/favorites" active={pathname === "/favorites"}>
               <Heart className="h-3.5 w-3.5" /> Saved
@@ -116,7 +116,7 @@ export function Navbar() {
         {/* Mobile top tab row */}
         <nav className="md:hidden flex border-t border-[var(--border)]">
           <TopTab href="/results" icon={<LayoutGrid className="h-4 w-4" />} label="Browse" active={pathname === "/results"} />
-          <TopTab href="/near" icon={<Search className="h-4 w-4" />} label="Shul Search" active={pathname === "/near"} />
+          <TopTab href="/results" icon={<Search className="h-4 w-4" />} label="Search" active={false} />
           <TopTab href="/favorites" icon={<Heart className="h-4 w-4" />} label="Saved" active={pathname === "/favorites"} />
         </nav>
 
