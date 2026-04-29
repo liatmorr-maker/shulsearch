@@ -161,11 +161,19 @@ export function ResultsClient({
 
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
-    filtered.forEach((p) =>
-      p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId))
-    );
+    filtered.forEach((p) => {
+      if (worshipType === "SYNAGOGUE") {
+        p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId));
+      } else if (worshipType === "CHURCH" && p.nearestChurchId) {
+        ids.add(p.nearestChurchId);
+      } else if (worshipType === "MOSQUE" && p.nearestMosqueId) {
+        ids.add(p.nearestMosqueId);
+      } else if (worshipType === "TEMPLE" && p.nearestTempleId) {
+        ids.add(p.nearestTempleId);
+      }
+    });
     return ids;
-  }, [filtered]);
+  }, [filtered, worshipType]);
 
   const visibleSynagogues = useMemo(
     () => initialSynagogues.filter(

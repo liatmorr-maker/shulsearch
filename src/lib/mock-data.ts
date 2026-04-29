@@ -42,8 +42,11 @@ export interface MockProperty {
   isFeatured: boolean;
   nearestSynagogueId?: string;
   nearestSynagugueDist?: number;
+  nearestChurchId?: string;
   nearestChurchDist?: number;
+  nearestMosqueId?: string;
   nearestMosqueDist?: number;
+  nearestTempleId?: string;
   nearestTempleDist?: number;
   synagogueCount1mi: number;
   proximityScore?: number;
