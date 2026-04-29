@@ -7,7 +7,11 @@ export const maxDuration = 120;
 // South Florida bounding box: covers all target cities
 const BBOX = "25.4,-80.9,26.6,-80.0"; // south,west,north,east
 
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+const OVERPASS_URLS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
+];
 
 function overpassQuery(religion: "christian" | "muslim") {
   return `[out:json][timeout:60];
@@ -50,16 +54,25 @@ function parsePlaces(elements: any[], worshipType: "CHURCH" | "MOSQUE") {
     .filter(Boolean);
 }
 
+async function fetchOverpass(query: string): Promise<Response> {
+  for (const url of OVERPASS_URLS) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        body: query,
+        headers: { "Content-Type": "text/plain" },
+        signal: AbortSignal.timeout(55_000),
+      });
+      if (res.ok) return res;
+    } catch { /* try next mirror */ }
+  }
+  throw new Error("All Overpass mirrors failed");
+}
+
 export async function POST() {
   try {
-    const [churchRes, mosqueRes] = await Promise.all([
-      fetch(OVERPASS_URL, { method: "POST", body: overpassQuery("christian"), headers: { "Content-Type": "text/plain" } }),
-      fetch(OVERPASS_URL, { method: "POST", body: overpassQuery("muslim"),    headers: { "Content-Type": "text/plain" } }),
-    ]);
-
-    if (!churchRes.ok || !mosqueRes.ok) {
-      return NextResponse.json({ error: "Overpass API request failed" }, { status: 502 });
-    }
+    const churchRes = await fetchOverpass(overpassQuery("christian"));
+    const mosqueRes = await fetchOverpass(overpassQuery("muslim"));
 
     const [churchJson, mosqueJson] = await Promise.all([churchRes.json(), mosqueRes.json()]);
 
