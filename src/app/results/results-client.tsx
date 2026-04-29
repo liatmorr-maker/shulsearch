@@ -42,12 +42,14 @@ interface ResultsClientProps {
   searchParams: { q?: string; city?: string; zip?: string; worshipType?: string };
   initialProperties: MockProperty[];
   initialSynagogues: MockSynagogue[];
+  initialWorshipType?: import("@/store/filter-store").WorshipType;
 }
 
 export function ResultsClient({
   searchParams,
   initialProperties,
   initialSynagogues,
+  initialWorshipType = "SYNAGOGUE",
 }: ResultsClientProps) {
   const router = useRouter();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -68,20 +70,26 @@ export function ResultsClient({
     bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery, setWorshipType,
   } = useFilterStore();
 
+  // Sync initialWorshipType (from URL/server) into the store on mount and when it changes
+  useEffect(() => {
+    setWorshipType(initialWorshipType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialWorshipType]);
+
   useEffect(() => {
     const q = searchParams.q ?? searchParams.city ?? searchParams.zip ?? "";
     setQuery(q);
     setSearchInput(q);
-    if (searchParams.worshipType && ["SYNAGOGUE","CHURCH","MOSQUE","TEMPLE"].includes(searchParams.worshipType)) {
-      setWorshipType(searchParams.worshipType as "SYNAGOGUE" | "CHURCH" | "MOSQUE" | "TEMPLE");
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.q, searchParams.city, searchParams.zip, searchParams.worshipType]);
+  }, [searchParams.q, searchParams.city, searchParams.zip]);
 
   function handleSearch(q: string) {
     if (!q.trim()) return;
     router.push(`/results?q=${encodeURIComponent(q.trim())}`);
   }
+
+  // Use store worship type if user has explicitly changed it, otherwise use server-resolved value
+  const effectiveWorshipType = worshipType !== "SYNAGOGUE" ? worshipType : initialWorshipType;
 
   const filtered = useMemo(() => {
     let results = [...initialProperties];
