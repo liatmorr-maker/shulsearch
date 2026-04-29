@@ -125,7 +125,6 @@ export function LandingHero() {
                   : "bg-white/10 text-white border-white/25 hover:bg-white/20"
               )}
             >
-              <span>{t.emoji}</span>
               <span>{t.label}</span>
             </button>
           ))}
