@@ -5,7 +5,7 @@ const STEPS = [
     icon: MapPin,
     color: "bg-blue-100 text-blue-700",
     title: "Search Your Area",
-    desc: "Enter a city, zip, or neighborhood to explore available properties and view nearby synagogues on the map.",
+    desc: "Enter a city, zip, or neighborhood to explore available properties and view nearby places of worship on the map.",
   },
   {
     icon: SlidersHorizontal,
@@ -17,7 +17,7 @@ const STEPS = [
     icon: Heart,
     color: "bg-rose-100 text-rose-700",
     title: "Save Favorites",
-    desc: "Save properties and synagogues. Come back anytime — your list is always ready.",
+    desc: "Save properties and places of worship. Come back anytime — your list is always ready.",
   },
 ];
 
