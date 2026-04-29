@@ -39,15 +39,17 @@ function MapPlaceholder() {
 }
 
 interface ResultsClientProps {
-  searchParams: { q?: string; city?: string; zip?: string };
+  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string };
   initialProperties: MockProperty[];
   initialSynagogues: MockSynagogue[];
+  initialWorshipType?: import("@/store/filter-store").WorshipType;
 }
 
 export function ResultsClient({
   searchParams,
   initialProperties,
   initialSynagogues,
+  initialWorshipType = "SYNAGOGUE",
 }: ResultsClientProps) {
   const router = useRouter();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -65,8 +67,14 @@ export function ResultsClient({
 
   const {
     listingType, worshipType, maxDistanceMi, priceMin, priceMax,
-    bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery,
+    bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery, setWorshipType,
   } = useFilterStore();
+
+  // Sync initialWorshipType (from URL/server) into the store on mount and when it changes
+  useEffect(() => {
+    setWorshipType(initialWorshipType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialWorshipType]);
 
   useEffect(() => {
     const q = searchParams.q ?? searchParams.city ?? searchParams.zip ?? "";
@@ -77,8 +85,11 @@ export function ResultsClient({
 
   function handleSearch(q: string) {
     if (!q.trim()) return;
-    router.push(`/results?q=${encodeURIComponent(q.trim())}`);
+    router.push(`/results?q=${encodeURIComponent(q.trim())}&worshipType=${worshipType}`);
   }
+
+  // Use store worship type if user has explicitly changed it, otherwise use server-resolved value
+  const effectiveWorshipType = worshipType !== "SYNAGOGUE" ? worshipType : initialWorshipType;
 
   const filtered = useMemo(() => {
     let results = [...initialProperties];
@@ -99,12 +110,14 @@ export function ResultsClient({
     }
 
     if (maxDistanceMi !== null) {
-      if (worshipType === "SYNAGOGUE") {
+      if (effectiveWorshipType === "SYNAGOGUE") {
         results = results.filter((p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi);
-      } else if (worshipType === "CHURCH") {
+      } else if (effectiveWorshipType === "CHURCH") {
         results = results.filter((p) => p.nearestChurchDist != null && p.nearestChurchDist <= maxDistanceMi);
-      } else if (worshipType === "MOSQUE") {
+      } else if (effectiveWorshipType === "MOSQUE") {
         results = results.filter((p) => p.nearestMosqueDist != null && p.nearestMosqueDist <= maxDistanceMi);
+      } else if (effectiveWorshipType === "TEMPLE") {
+        results = results.filter((p) => p.nearestTempleDist != null && p.nearestTempleDist <= maxDistanceMi);
       }
     }
 
@@ -118,7 +131,7 @@ export function ResultsClient({
       results = results.filter((p) => p.baths >= bathsMin);
     }
 
-    if (worshipType === "SYNAGOGUE" && denomination !== "ALL") {
+    if (effectiveWorshipType === "SYNAGOGUE" && denomination !== "ALL") {
       results = results.filter((p) =>
         p.synagogueDistances?.some((sd) => sd.synagogue.denomination === denomination)
       );
@@ -152,22 +165,27 @@ export function ResultsClient({
 
     return results;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialProperties, listingType, worshipType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
+  }, [initialProperties, listingType, effectiveWorshipType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
 
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
-    filtered.forEach((p) =>
-      p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId))
-    );
+    filtered.forEach((p) => {
+      p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId));
+    });
     return ids;
   }, [filtered]);
 
-  const visibleSynagogues = useMemo(
-    () => initialSynagogues.filter(
-      (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === worshipType
-    ),
-    [initialSynagogues, visibleSynagogueIds, worshipType]
-  );
+  const visibleSynagogues = useMemo(() => {
+    if (effectiveWorshipType === "SYNAGOGUE") {
+      return initialSynagogues.filter(
+        (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === "SYNAGOGUE"
+      );
+    }
+    // For other types, show all places of that type in the loaded data
+    return initialSynagogues.filter(
+      (s) => (s.worshipType ?? "SYNAGOGUE") === effectiveWorshipType
+    );
+  }, [initialSynagogues, visibleSynagogueIds, effectiveWorshipType]);
 
   const searchLabel =
     searchParams.q ?? searchParams.city ?? searchParams.zip ?? "South Florida";
@@ -307,7 +325,7 @@ function EmptyState() {
       <div className="mb-4 text-5xl">🏠</div>
       <h3 className="mb-2 text-lg font-semibold text-slate-800">No listings found</h3>
       <p className="mb-6 text-sm text-slate-500 max-w-xs">
-        Try adjusting your filters — expand the shul distance or relax the price range.
+        Try adjusting your filters — expand the distance or relax the price range.
       </p>
       <Button variant="outline" onClick={reset}>
         Clear Filters
