@@ -152,17 +152,25 @@ export function ShulSearchMap({
   async function renderSynMarkers(map: mapboxgl.Map, syns: MockSynagogue[]) {
     const mapboxgl = (await import("mapbox-gl")).default;
 
+    const WORSHIP_STYLE: Record<string, { bg: string; icon: string }> = {
+      SYNAGOGUE: { bg: "#1a56db", icon: "✡" },
+      CHURCH:    { bg: "#7c3aed", icon: "✝" },
+      MOSQUE:    { bg: "#059669", icon: "☪" },
+      TEMPLE:    { bg: "#d97706", icon: "🛕" },
+    };
+
     syns.forEach((syn) => {
       if (!syn.lat || !syn.lng || isNaN(syn.lat) || isNaN(syn.lng)) return;
+      const style = WORSHIP_STYLE[syn.worshipType ?? "SYNAGOGUE"] ?? WORSHIP_STYLE.SYNAGOGUE;
       const el = document.createElement("div");
       el.innerHTML = `
         <div style="
           width:28px;height:28px;border-radius:50%;
-          background:#1a56db;border:2px solid white;
+          background:${style.bg};border:2px solid white;
           display:flex;align-items:center;justify-content:center;
           color:white;font-size:13px;cursor:pointer;
           box-shadow:0 2px 8px rgba(0,0,0,0.3);
-        ">✡</div>`;
+        ">${style.icon}</div>`;
 
       const popup = new mapboxgl.Popup({ offset: 18, closeButton: false, closeOnClick: false }).setHTML(`
         <div style="padding:10px;min-width:190px">

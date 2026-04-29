@@ -162,23 +162,22 @@ export function ResultsClient({
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
     filtered.forEach((p) => {
-      if (worshipType === "SYNAGOGUE") {
-        p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId));
-      } else if (worshipType === "CHURCH" && p.nearestChurchId) {
-        ids.add(p.nearestChurchId);
-      } else if (worshipType === "MOSQUE" && p.nearestMosqueId) {
-        ids.add(p.nearestMosqueId);
-      } else if (worshipType === "TEMPLE" && p.nearestTempleId) {
-        ids.add(p.nearestTempleId);
-      }
+      p.synagogueDistances?.forEach((sd) => ids.add(sd.synagogueId));
     });
     return ids;
-  }, [filtered, worshipType]);
+  }, [filtered]);
 
-  const visibleSynagogues = useMemo(
-    () => initialSynagogues.filter(
-      (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === worshipType
-    ),
+  const visibleSynagogues = useMemo(() => {
+    if (worshipType === "SYNAGOGUE") {
+      return initialSynagogues.filter(
+        (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === "SYNAGOGUE"
+      );
+    }
+    // For other types, show all places of that type in the loaded data
+    return initialSynagogues.filter(
+      (s) => (s.worshipType ?? "SYNAGOGUE") === worshipType
+    );
+  },
     [initialSynagogues, visibleSynagogueIds, worshipType]
   );
 
