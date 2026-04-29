@@ -29,7 +29,7 @@ const TABS: {
     emoji: "🕍",
     label: "ShulSearch",
     title: "Find Your Home Near Your Shul",
-    subtitle: "Search homes ranked by proximity to synagogues, with filters for distance, denomination, and community.",
+    subtitle: "Search homes ranked by proximity to your place of worship, with filters for distance, denomination, and community.",
     gradient: "from-blue-900 via-blue-800 to-indigo-900",
     accent: "text-blue-300",
     pattern: "✡",
