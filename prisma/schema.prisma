@@ -74,6 +74,7 @@ enum PlaceOfWorshipType {
   SYNAGOGUE
   CHURCH
   MOSQUE
+  TEMPLE
 }
 
 model Property {
@@ -107,6 +108,8 @@ model Property {
   nearestChurchDist    Float? // miles
   nearestMosqueId      String?
   nearestMosqueDist    Float? // miles
+  nearestTempleId      String?
+  nearestTempleDist    Float? // miles
 
   isApproved Boolean  @default(false)
   isFeatured Boolean  @default(false)
