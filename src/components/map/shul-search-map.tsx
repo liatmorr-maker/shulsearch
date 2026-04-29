@@ -13,7 +13,15 @@ interface ShulSearchMapProps {
   onPropertyClick?: (id: string) => void;
   center?: [number, number];
   zoom?: number;
+  worshipType?: string;
 }
+
+const WORSHIP_LEGEND: Record<string, { bg: string; icon: string; label: string }> = {
+  SYNAGOGUE: { bg: "#1a56db", icon: "✡", label: "Synagogue" },
+  CHURCH:    { bg: "#7c3aed", icon: "✝", label: "Church" },
+  MOSQUE:    { bg: "#059669", icon: "☪", label: "Mosque" },
+  TEMPLE:    { bg: "#d97706", icon: "🛕", label: "Temple" },
+};
 
 export function ShulSearchMap({
   properties,
@@ -22,6 +30,7 @@ export function ShulSearchMap({
   onPropertyClick,
   center = [-80.13, 25.96],
   zoom = 12,
+  worshipType = "SYNAGOGUE",
 }: ShulSearchMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -341,21 +350,26 @@ export function ShulSearchMap({
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-4 flex flex-col gap-1.5 rounded-xl bg-white/95 p-3 shadow-lg text-xs backdrop-blur-sm">
-        <div className="font-semibold text-slate-700 mb-1">Legend</div>
-        <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1a56db] text-white text-[10px]">✡</span>
-          <span className="text-slate-600">Synagogue</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#ff5a1f]" />
-          <span className="text-slate-600">For Sale</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#0e9f6e]" />
-          <span className="text-slate-600">For Rent</span>
-        </div>
-      </div>
+      {(() => {
+        const leg = WORSHIP_LEGEND[worshipType] ?? WORSHIP_LEGEND.SYNAGOGUE;
+        return (
+          <div className="absolute bottom-6 left-4 flex flex-col gap-1.5 rounded-xl bg-white/95 p-3 shadow-lg text-xs backdrop-blur-sm">
+            <div className="font-semibold text-slate-700 mb-1">Legend</div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full text-white text-[10px]" style={{ background: leg.bg }}>{leg.icon}</span>
+              <span className="text-slate-600">{leg.label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm bg-[#ff5a1f]" />
+              <span className="text-slate-600">For Sale</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm bg-[#0e9f6e]" />
+              <span className="text-slate-600">For Rent</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

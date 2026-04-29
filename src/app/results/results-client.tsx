@@ -311,6 +311,7 @@ export function ResultsClient({
             }}
             center={[-80.20, 26.10]}
             zoom={searchParams.q ?? searchParams.city ?? searchParams.zip ? 12 : 10}
+            worshipType={effectiveWorshipType}
           />
         </div>
       </div>
