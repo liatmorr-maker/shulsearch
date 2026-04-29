@@ -324,36 +324,44 @@ export function ShulSearchMap({
           </button>
 
           {/* Header */}
-          <div className="bg-[#1a56db] px-4 py-3 flex items-center gap-2">
-            <span className="text-white text-lg">✡</span>
-            <span className="text-white font-bold text-sm leading-tight">{popupSynagogue.name}</span>
-          </div>
+          {(() => {
+            const leg = WORSHIP_LEGEND[popupSynagogue.worshipType ?? "SYNAGOGUE"] ?? WORSHIP_LEGEND.SYNAGOGUE;
+            return (
+              <>
+                <div className="px-4 py-3 flex items-center gap-2" style={{ background: leg.bg }}>
+                  <span className="text-white text-lg">{leg.icon}</span>
+                  <span className="text-white font-bold text-sm leading-tight">{popupSynagogue.name}</span>
+                </div>
 
-          {/* Details */}
-          <div className="p-4 space-y-2 text-sm">
-            <div className="text-slate-500 text-xs font-semibold uppercase tracking-wide">
-              {DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}
-            </div>
-            <div className="text-slate-700">{popupSynagogue.address}, {popupSynagogue.city}, {popupSynagogue.state}</div>
-            {popupSynagogue.phone && (
-              <a href={`tel:${popupSynagogue.phone}`} className="block text-blue-600 hover:underline">
-                {popupSynagogue.phone}
-              </a>
-            )}
-            {popupSynagogue.website && (
-              <a href={popupSynagogue.website} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">
-                {popupSynagogue.website.replace(/^https?:\/\//, "")}
-              </a>
-            )}
-            <div className="pt-1">
-              <Link
-                href={`/synagogue/${popupSynagogue.id}`}
-                className="block w-full rounded-lg bg-blue-600 py-2 text-center text-xs font-bold text-white hover:bg-blue-700 transition-colors"
-              >
-                View Synagogue →
-              </Link>
-            </div>
-          </div>
+                {/* Details */}
+                <div className="p-4 space-y-2 text-sm">
+                  <div className="text-slate-500 text-xs font-semibold uppercase tracking-wide">
+                    {DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}
+                  </div>
+                  <div className="text-slate-700">{popupSynagogue.address}, {popupSynagogue.city}, {popupSynagogue.state}</div>
+                  {popupSynagogue.phone && (
+                    <a href={`tel:${popupSynagogue.phone}`} className="block text-blue-600 hover:underline">
+                      {popupSynagogue.phone}
+                    </a>
+                  )}
+                  {popupSynagogue.website && (
+                    <a href={popupSynagogue.website} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">
+                      {popupSynagogue.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  )}
+                  <div className="pt-1">
+                    <Link
+                      href={`/synagogue/${popupSynagogue.id}`}
+                      className="block w-full rounded-lg py-2 text-center text-xs font-bold text-white transition-colors"
+                      style={{ background: leg.bg }}
+                    >
+                      View {leg.label} →
+                    </Link>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
