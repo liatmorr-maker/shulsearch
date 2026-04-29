@@ -1,7 +1,10 @@
+export type WorshipType = "SYNAGOGUE" | "CHURCH" | "MOSQUE";
+
 export interface MockSynagogue {
   id: string;
   name: string;
   denomination: string;
+  worshipType?: WorshipType;
   address: string;
   city: string;
   state: string;
@@ -39,6 +42,8 @@ export interface MockProperty {
   isFeatured: boolean;
   nearestSynagogueId?: string;
   nearestSynagugueDist?: number;
+  nearestChurchDist?: number;
+  nearestMosqueDist?: number;
   synagogueCount1mi: number;
   proximityScore?: number;
   synagogueDistances?: {

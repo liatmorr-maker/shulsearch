@@ -64,7 +64,7 @@ export function ResultsClient({
   );
 
   const {
-    listingType, maxDistanceMi, priceMin, priceMax,
+    listingType, worshipType, maxDistanceMi, priceMin, priceMax,
     bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery,
   } = useFilterStore();
 
@@ -99,9 +99,13 @@ export function ResultsClient({
     }
 
     if (maxDistanceMi !== null) {
-      results = results.filter(
-        (p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi
-      );
+      if (worshipType === "SYNAGOGUE") {
+        results = results.filter((p) => p.nearestSynagugueDist != null && p.nearestSynagugueDist <= maxDistanceMi);
+      } else if (worshipType === "CHURCH") {
+        results = results.filter((p) => p.nearestChurchDist != null && p.nearestChurchDist <= maxDistanceMi);
+      } else if (worshipType === "MOSQUE") {
+        results = results.filter((p) => p.nearestMosqueDist != null && p.nearestMosqueDist <= maxDistanceMi);
+      }
     }
 
     results = results.filter((p) => p.price >= priceMin && p.price <= priceMax);
@@ -114,7 +118,7 @@ export function ResultsClient({
       results = results.filter((p) => p.baths >= bathsMin);
     }
 
-    if (denomination !== "ALL") {
+    if (worshipType === "SYNAGOGUE" && denomination !== "ALL") {
       results = results.filter((p) =>
         p.synagogueDistances?.some((sd) => sd.synagogue.denomination === denomination)
       );
@@ -148,7 +152,7 @@ export function ResultsClient({
 
     return results;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialProperties, listingType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
+  }, [initialProperties, listingType, worshipType, maxDistanceMi, priceMin, priceMax, bedsMin, bathsMin, denomination, homeTypes, sortBy, searchParams.city, searchParams.q]);
 
   const visibleSynagogueIds = useMemo(() => {
     const ids = new Set<string>();
@@ -159,8 +163,10 @@ export function ResultsClient({
   }, [filtered]);
 
   const visibleSynagogues = useMemo(
-    () => initialSynagogues.filter((s) => visibleSynagogueIds.has(s.id)),
-    [initialSynagogues, visibleSynagogueIds]
+    () => initialSynagogues.filter(
+      (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === worshipType
+    ),
+    [initialSynagogues, visibleSynagogueIds, worshipType]
   );
 
   const searchLabel =

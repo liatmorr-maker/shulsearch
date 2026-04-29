@@ -47,9 +47,10 @@ model Synagogue {
   // PostGIS geography column managed via raw migration: location geography(Point,4326)
   description  String?
   imageUrl     String?
-  isVerified   Boolean      @default(false)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  worshipType  PlaceOfWorshipType @default(SYNAGOGUE)
+  isVerified   Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   propertyDistances PropertySynagogueDistance[]
   nearestProperties Property[]                  @relation("NearestSynagogue")
@@ -67,6 +68,12 @@ enum Denomination {
   SEPHARDIC
   CHABAD
   OTHER
+}
+
+enum PlaceOfWorshipType {
+  SYNAGOGUE
+  CHURCH
+  MOSQUE
 }
 
 model Property {
@@ -96,6 +103,10 @@ model Property {
   nearestSynagugueDist Float? // miles
   synagogueCount1mi    Int     @default(0)
   proximityScore       Float?
+  nearestChurchId      String?
+  nearestChurchDist    Float? // miles
+  nearestMosqueId      String?
+  nearestMosqueDist    Float? // miles
 
   isApproved Boolean  @default(false)
   isFeatured Boolean  @default(false)

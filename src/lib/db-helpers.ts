@@ -23,6 +23,7 @@ function synToMock(s: any): MockSynagogue {
     id: s.id,
     name: s.name,
     denomination: s.denomination,
+    worshipType: (s.worshipType ?? "SYNAGOGUE") as MockSynagogue["worshipType"],
     address: s.address,
     city: s.city,
     state: s.state,
@@ -168,6 +169,8 @@ function propToMock(p: any): MockProperty {
     isFeatured: p.isFeatured,
     nearestSynagogueId: p.nearestSynagogueId ?? undefined,
     nearestSynagugueDist: p.nearestSynagugueDist ?? undefined,
+    nearestChurchDist: p.nearestChurchDist ?? undefined,
+    nearestMosqueDist: p.nearestMosqueDist ?? undefined,
     synagogueCount1mi: p.synagogueCount1mi,
     proximityScore: p.proximityScore ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,6 +180,7 @@ function propToMock(p: any): MockProperty {
       walkMinutes: sd.walkMinutes,
       synagogue: {
         denomination: sd.synagogue.denomination,
+        worshipType: (sd.synagogue.worshipType ?? "SYNAGOGUE") as MockSynagogue["worshipType"],
         name: sd.synagogue.name,
         lat: sd.synagogue.lat,
         lng: sd.synagogue.lng,

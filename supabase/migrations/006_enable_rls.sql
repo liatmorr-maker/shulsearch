@@ -1,10 +1,19 @@
 -- Enable RLS on all public tables
 -- The app uses Prisma with the service role key which bypasses RLS,
 -- so this does not affect app functionality.
+-- This file is idempotent: safe to run multiple times.
 
--- Fix any rows with null updatedAt (data issue from early seed migrations)
-UPDATE synagogues SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL;
-UPDATE properties SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL;
+-- ── Ensure timestamp columns always have defaults (safety net) ────────────────
+ALTER TABLE public.synagogues  ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+ALTER TABLE public.synagogues  ALTER COLUMN "createdAt" SET DEFAULT NOW();
+ALTER TABLE public.properties  ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+ALTER TABLE public.properties  ALTER COLUMN "createdAt" SET DEFAULT NOW();
+
+-- ── Fix any rows with null timestamps ────────────────────────────────────────
+UPDATE public.synagogues SET "updatedAt" = NOW() WHERE "updatedAt" IS NULL;
+UPDATE public.synagogues SET "createdAt" = NOW() WHERE "createdAt" IS NULL;
+UPDATE public.properties SET "updatedAt" = NOW() WHERE "updatedAt" IS NULL;
+UPDATE public.properties SET "createdAt" = NOW() WHERE "createdAt" IS NULL;
 
 -- ── PostGIS system table ──────────────────────────────────────────────────────
 ALTER TABLE public.spatial_ref_sys ENABLE ROW LEVEL SECURITY;
@@ -12,14 +21,17 @@ ALTER TABLE public.spatial_ref_sys ENABLE ROW LEVEL SECURITY;
 -- ── Public read tables ────────────────────────────────────────────────────────
 
 ALTER TABLE public.synagogues ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "synagogues_public_read" ON public.synagogues;
 CREATE POLICY "synagogues_public_read" ON public.synagogues
   FOR SELECT USING (true);
 
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "properties_public_read" ON public.properties;
 CREATE POLICY "properties_public_read" ON public.properties
   FOR SELECT USING ("isApproved" = true AND status = 'ACTIVE');
 
 ALTER TABLE public.property_synagogue_distances ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "distances_public_read" ON public.property_synagogue_distances;
 CREATE POLICY "distances_public_read" ON public.property_synagogue_distances
   FOR SELECT USING (true);
 
