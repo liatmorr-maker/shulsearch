@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type ListingType = "ALL" | "SALE" | "RENT";
-export type WorshipType = "SYNAGOGUE" | "CHURCH" | "MOSQUE";
+export type WorshipType = "SYNAGOGUE" | "CHURCH" | "MOSQUE" | "TEMPLE";
 export type Denomination =
   | "ALL"
   | "ORTHODOX"

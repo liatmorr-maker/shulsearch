@@ -39,7 +39,7 @@ function MapPlaceholder() {
 }
 
 interface ResultsClientProps {
-  searchParams: { q?: string; city?: string; zip?: string };
+  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string };
   initialProperties: MockProperty[];
   initialSynagogues: MockSynagogue[];
 }
@@ -65,15 +65,18 @@ export function ResultsClient({
 
   const {
     listingType, worshipType, maxDistanceMi, priceMin, priceMax,
-    bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery,
+    bedsMin, bathsMin, denomination, homeTypes, sortBy, setQuery, setWorshipType,
   } = useFilterStore();
 
   useEffect(() => {
     const q = searchParams.q ?? searchParams.city ?? searchParams.zip ?? "";
     setQuery(q);
     setSearchInput(q);
+    if (searchParams.worshipType && ["SYNAGOGUE","CHURCH","MOSQUE","TEMPLE"].includes(searchParams.worshipType)) {
+      setWorshipType(searchParams.worshipType as "SYNAGOGUE" | "CHURCH" | "MOSQUE" | "TEMPLE");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.q, searchParams.city, searchParams.zip]);
+  }, [searchParams.q, searchParams.city, searchParams.zip, searchParams.worshipType]);
 
   function handleSearch(q: string) {
     if (!q.trim()) return;
@@ -105,6 +108,8 @@ export function ResultsClient({
         results = results.filter((p) => p.nearestChurchDist != null && p.nearestChurchDist <= maxDistanceMi);
       } else if (worshipType === "MOSQUE") {
         results = results.filter((p) => p.nearestMosqueDist != null && p.nearestMosqueDist <= maxDistanceMi);
+      } else if (worshipType === "TEMPLE") {
+        results = results.filter((p) => p.nearestTempleDist != null && p.nearestTempleDist <= maxDistanceMi);
       }
     }
 

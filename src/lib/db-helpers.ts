@@ -171,6 +171,7 @@ function propToMock(p: any): MockProperty {
     nearestSynagugueDist: p.nearestSynagugueDist ?? undefined,
     nearestChurchDist: p.nearestChurchDist ?? undefined,
     nearestMosqueDist: p.nearestMosqueDist ?? undefined,
+    nearestTempleDist: p.nearestTempleDist ?? undefined,
     synagogueCount1mi: p.synagogueCount1mi,
     proximityScore: p.proximityScore ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

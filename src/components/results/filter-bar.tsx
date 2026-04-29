@@ -12,6 +12,7 @@ const WORSHIP_TYPES: { label: string; emoji: string; value: WorshipType }[] = [
   { label: "Synagogue", emoji: "✡", value: "SYNAGOGUE" },
   { label: "Church",    emoji: "✝", value: "CHURCH" },
   { label: "Mosque",    emoji: "☪", value: "MOSQUE" },
+  { label: "Temple",    emoji: "🛕", value: "TEMPLE" },
 ];
 
 const DISTANCE_OPTIONS: { label: string; value: DistanceFilter }[] = [
