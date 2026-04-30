@@ -31,6 +31,11 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
   const denomLabel = DENOMINATION_LABELS[synagogue.denomination] ?? synagogue.denomination;
   const denomColor = DENOMINATION_COLORS[synagogue.denomination] ?? "bg-gray-100 text-gray-800";
 
+  const WORSHIP_ICON: Record<string, string> = {
+    SYNAGOGUE: "✡", CHURCH: "✝", MOSQUE: "☪", TEMPLE: "🛕",
+  };
+  const worshipIcon = WORSHIP_ICON[synagogue.worshipType ?? "SYNAGOGUE"] ?? "✡";
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Back */}
@@ -51,7 +56,7 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
               <div className="flex items-center gap-4">
                 {/* Icon */}
                 <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-3xl">
-                  ✡
+                  {worshipIcon}
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -129,7 +134,7 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
               Location &amp; Walking Radius
             </h2>
             <div className="relative h-96 overflow-hidden rounded-2xl border border-[var(--border)]">
-              <SynagogueMapWithRings synagogue={synagogue} />
+              <SynagogueMapWithRings synagogue={synagogue} icon={worshipIcon} />
             </div>
             {/* Radius legend */}
             <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
@@ -203,7 +208,7 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
 
             {/* Walking distance guide */}
             <div className="rounded-2xl border border-[var(--border)] bg-blue-50 p-5">
-              <h3 className="mb-3 text-sm font-semibold text-blue-800">Shabbos Walk Guide</h3>
+              <h3 className="mb-3 text-sm font-semibold text-blue-800">Walk Guide</h3>
               <div className="space-y-2 text-sm">
                 {[
                   { mi: 0.25, min: 5, label: "Very close" },
@@ -234,11 +239,11 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
 }
 
 // Sub-component: map with PostGIS-style radius rings rendered via Mapbox GL
-function SynagogueMapWithRings({ synagogue }: { synagogue: MockSynagogue }) {
-  return <SynagogueRingMap synagogue={synagogue} />;
+function SynagogueMapWithRings({ synagogue, icon }: { synagogue: MockSynagogue; icon: string }) {
+  return <SynagogueRingMap synagogue={synagogue} icon={icon} />;
 }
 
-function SynagogueRingMap({ synagogue }: { synagogue: MockSynagogue }) {
+function SynagogueRingMap({ synagogue, icon }: { synagogue: MockSynagogue; icon: string }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = React.useRef<any>(null);
@@ -265,7 +270,7 @@ function SynagogueRingMap({ synagogue }: { synagogue: MockSynagogue }) {
 
       // Synagogue marker
       const el = document.createElement("div");
-      el.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:#1a56db;border:3px solid white;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;box-shadow:0 3px 12px rgba(0,0,0,0.3)">✡</div>`;
+      el.innerHTML = `<div style="width:40px;height:40px;border-radius:50%;background:#1a56db;border:3px solid white;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;box-shadow:0 3px 12px rgba(0,0,0,0.3)">${icon}</div>`;
       new mapboxgl.Marker(el).setLngLat([synagogue.lng, synagogue.lat]).addTo(map);
 
       map.on("load", () => {
