@@ -29,6 +29,7 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
   const { showGate, recordView, dismissGate } = useUsageGate(!!isSignedIn);
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [savePending, setSavePending] = useState(false);
   const [photos, setPhotos] = useState<string[]>(property.imageUrls);
   const [showRequestModal, setShowRequestModal] = useState(false);
 
@@ -37,6 +38,38 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
     recordView();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load saved state from API on mount
+  useEffect(() => {
+    if (!isSignedIn) return;
+    fetch("/api/saved")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.ids) && data.ids.includes(property.id)) {
+          setSaved(true);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn]);
+
+  async function handleSave() {
+    if (!isSignedIn) {
+      window.location.href = `/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    setSavePending(true);
+    try {
+      const res = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id }),
+      });
+      const data = await res.json();
+      setSaved(!!data.saved);
+    } catch { /* ignore */ }
+    setSavePending(false);
+  }
 
   // Fetch full photo gallery from MLS on mount (detail endpoint has all photos)
   useEffect(() => {
@@ -204,8 +237,9 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
-                onClick={() => setSaved((v) => !v)}
+                className={cn("w-full", saved && "border-rose-300 text-rose-600 hover:bg-rose-50")}
+                onClick={handleSave}
+                disabled={savePending}
               >
                 <Heart className={cn("mr-2 h-4 w-4", saved && "fill-current text-rose-500")} />
                 {saved ? "Saved" : "Save Property"}
