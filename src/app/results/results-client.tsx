@@ -176,16 +176,19 @@ export function ResultsClient({
   }, [filtered]);
 
   const visibleSynagogues = useMemo(() => {
-    if (effectiveWorshipType === "SYNAGOGUE") {
+    // When a coordinate-based search is active (lat/lng in URL), always show
+    // all places of the active worship type regardless of property linkage.
+    const coordSearch = !!(searchParams.lat && searchParams.lng);
+
+    if (effectiveWorshipType === "SYNAGOGUE" && !coordSearch) {
       return initialSynagogues.filter(
         (s) => visibleSynagogueIds.has(s.id) && (s.worshipType ?? "SYNAGOGUE") === "SYNAGOGUE"
       );
     }
-    // For other types, show all places of that type in the loaded data
     return initialSynagogues.filter(
       (s) => (s.worshipType ?? "SYNAGOGUE") === effectiveWorshipType
     );
-  }, [initialSynagogues, visibleSynagogueIds, effectiveWorshipType]);
+  }, [initialSynagogues, visibleSynagogueIds, effectiveWorshipType, searchParams.lat, searchParams.lng]);
 
   const searchLabel =
     searchParams.q ?? searchParams.city ?? searchParams.zip ?? "South Florida";

@@ -47,35 +47,41 @@ const PROPERTY_INCLUDE = {
 } as const;
 
 export async function getAllActiveProperties(city?: string): Promise<MockProperty[]> {
-  const cityFilter = city
-    ? {
-        OR: [
-          { city: { contains: city, mode: "insensitive" as const } },
-          { zip: { contains: city, mode: "insensitive" as const } },
-          { address: { contains: city, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  async function fetchRows(cityFilter: object) {
+    const baseWhere = { isApproved: true, status: "ACTIVE" as const, ...cityFilter };
+    const [saleRows, rentRows] = await Promise.all([
+      prisma.property.findMany({
+        where: { ...baseWhere, listingType: "SALE" },
+        include: PROPERTY_INCLUDE,
+        orderBy: { proximityScore: "desc" },
+        take: 400,
+      }),
+      prisma.property.findMany({
+        where: { ...baseWhere, listingType: "RENT" },
+        include: PROPERTY_INCLUDE,
+        orderBy: { proximityScore: "desc" },
+        take: 400,
+      }),
+    ]);
+    return [...saleRows, ...rentRows];
+  }
 
-  const baseWhere = { isApproved: true, status: "ACTIVE" as const, ...cityFilter };
+  if (city) {
+    const cityFilter = {
+      OR: [
+        { city: { contains: city, mode: "insensitive" as const } },
+        { zip: { contains: city, mode: "insensitive" as const } },
+        { address: { contains: city, mode: "insensitive" as const } },
+        { neighborhood: { contains: city, mode: "insensitive" as const } },
+      ],
+    };
+    const rows = await fetchRows(cityFilter);
+    // If the text query matched nothing (e.g. street name typed directly),
+    // fall back to all properties so the map is never empty.
+    if (rows.length > 0) return rows.map(propToMock);
+  }
 
-  // Fetch SALE and RENT separately so neither type gets squeezed out by the cap
-  const [saleRows, rentRows] = await Promise.all([
-    prisma.property.findMany({
-      where: { ...baseWhere, listingType: "SALE" },
-      include: PROPERTY_INCLUDE,
-      orderBy: { proximityScore: "desc" },
-      take: 400,
-    }),
-    prisma.property.findMany({
-      where: { ...baseWhere, listingType: "RENT" },
-      include: PROPERTY_INCLUDE,
-      orderBy: { proximityScore: "desc" },
-      take: 400,
-    }),
-  ]);
-
-  return [...saleRows, ...rentRows].map(propToMock);
+  return (await fetchRows({})).map(propToMock);
 }
 
 export async function getFeaturedProperties(limit = 3): Promise<MockProperty[]> {
