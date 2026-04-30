@@ -2,27 +2,183 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, MapPin, Menu, Search, X, LogOut, LayoutGrid } from "lucide-react";
-import { useState } from "react";
+import { Heart, MapPin, Menu, Search, X, LogOut, LayoutGrid, Building2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+// ── Search dropdown ───────────────────────────────────────────────────────────
+function SearchDropdown({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [tab, setTab] = useState<"address" | "place">("address");
+  const [addressVal, setAddressVal] = useState("");
+  const [placeVal, setPlaceVal] = useState("");
+  const [suggestions, setSuggestions] = useState<{ id: string; name: string; city: string; worshipType: string }[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  // Autocomplete places by name
+  useEffect(() => {
+    if (tab !== "place" || placeVal.trim().length < 2) { setSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await fetch(`/api/search/places?q=${encodeURIComponent(placeVal.trim())}`);
+        if (res.ok) setSuggestions(await res.json());
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [placeVal, tab]);
+
+  function handleAddressSearch() {
+    if (!addressVal.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(addressVal.trim())}`);
+    onClose();
+  }
+
+  const WORSHIP_ICON: Record<string, string> = { SYNAGOGUE: "✡", CHURCH: "✝", MOSQUE: "☪", TEMPLE: "🛕" };
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[420px] rounded-2xl border border-[var(--border)] bg-white shadow-2xl z-50 overflow-hidden"
+    >
+      {/* Tabs */}
+      <div className="flex border-b border-[var(--border)]">
+        <button
+          onClick={() => setTab("address")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors",
+            tab === "address" ? "border-b-2 border-blue-600 text-blue-600" : "text-slate-500 hover:text-slate-800"
+          )}
+        >
+          <MapPin className="h-4 w-4" /> Search by Address
+        </button>
+        <button
+          onClick={() => setTab("place")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors",
+            tab === "place" ? "border-b-2 border-blue-600 text-blue-600" : "text-slate-500 hover:text-slate-800"
+          )}
+        >
+          <Building2 className="h-4 w-4" /> Search by Place
+        </button>
+      </div>
+
+      {/* Address tab */}
+      {tab === "address" && (
+        <div className="p-4">
+          <p className="mb-3 text-xs text-slate-500">Enter a city, zip code, or neighborhood to find nearby listings.</p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                autoFocus
+                value={addressVal}
+                onChange={(e) => setAddressVal(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddressSearch()}
+                placeholder="City, zip code, or neighborhood…"
+                className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            </div>
+            <button
+              onClick={handleAddressSearch}
+              className="rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+            >
+              Search
+            </button>
+          </div>
+          {/* Quick chips */}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {["Aventura", "Boca Raton", "Hollywood", "Surfside"].map((city) => (
+              <button
+                key={city}
+                onClick={() => { router.push(`/results?q=${encodeURIComponent(city)}`); onClose(); }}
+                className="rounded-full border border-[var(--border)] bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Place tab */}
+      {tab === "place" && (
+        <div className="p-4">
+          <p className="mb-3 text-xs text-slate-500">Search by the name of a synagogue, church, mosque, or temple.</p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              autoFocus
+              value={placeVal}
+              onChange={(e) => setPlaceVal(e.target.value)}
+              placeholder="e.g. Chabad of Aventura, St. Patrick's…"
+              className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          </div>
+
+          {/* Suggestions */}
+          {loadingSuggestions && (
+            <p className="mt-3 text-center text-xs text-slate-400">Searching…</p>
+          )}
+          {suggestions.length > 0 && (
+            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-[var(--border)] overflow-hidden">
+              {suggestions.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={`/synagogue/${s.id}`}
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="text-base">{WORSHIP_ICON[s.worshipType] ?? "🏛"}</span>
+                    <div>
+                      <div className="text-sm font-medium text-slate-800">{s.name}</div>
+                      <div className="text-xs text-slate-500">{s.city}</div>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {!loadingSuggestions && placeVal.trim().length >= 2 && suggestions.length === 0 && (
+            <p className="mt-3 text-center text-xs text-slate-400">No places found matching &ldquo;{placeVal}&rdquo;</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Navbar ───────────────────────────────────────────────────────────────
 export function Navbar() {
   const pathname    = usePathname();
   const router      = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchVal, setSearchVal]   = useState("");
   const { isSignedIn, user }        = useUser();
   const { signOut }                 = useClerk();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === "liatmorr@gmail.com";
 
-  function handleSearch() {
-    if (!searchVal.trim()) return;
-    router.push(`/results?q=${encodeURIComponent(searchVal.trim())}`);
+  // Mobile search state (simpler — just one address input)
+  const [mobileSearchVal, setMobileSearchVal] = useState("");
+  function handleMobileSearch() {
+    if (!mobileSearchVal.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(mobileSearchVal.trim())}`);
     setSearchOpen(false);
-    setSearchVal("");
+    setMobileSearchVal("");
   }
 
   return (
@@ -37,35 +193,24 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 relative">
             <NavLink href="/results" active={pathname === "/results"}>
               <MapPin className="h-3.5 w-3.5" /> Browse
             </NavLink>
 
-            {/* Expandable search */}
-            {searchOpen ? (
-              <div className="flex items-center gap-1 rounded-lg border border-blue-400 bg-white px-2 ring-1 ring-blue-400">
-                <Search className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
-                <input
-                  autoFocus
-                  value={searchVal}
-                  onChange={(e) => setSearchVal(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); if (e.key === "Escape") setSearchOpen(false); }}
-                  placeholder="City, zip, or place name…"
-                  className="w-52 py-1.5 text-sm text-slate-800 placeholder-slate-400 outline-none bg-transparent"
-                />
-                <button onClick={() => setSearchOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : (
+            {/* Search button + dropdown */}
+            <div className="relative">
               <button
-                onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-[var(--accent)] hover:text-slate-900 transition-colors"
+                onClick={() => setSearchOpen((v) => !v)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  searchOpen ? "bg-blue-50 text-blue-600" : "text-slate-600 hover:bg-[var(--accent)] hover:text-slate-900"
+                )}
               >
                 <Search className="h-3.5 w-3.5" /> Search
               </button>
-            )}
+              {searchOpen && <SearchDropdown onClose={() => setSearchOpen(false)} />}
+            </div>
 
             <NavLink href="/favorites" active={pathname === "/favorites"}>
               <Heart className="h-3.5 w-3.5" /> Saved
@@ -95,26 +240,15 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 {user?.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.imageUrl}
-                    alt={user.firstName ?? ""}
-                    className="h-8 w-8 rounded-full object-cover border border-slate-200"
-                  />
+                  <img src={user.imageUrl} alt={user.firstName ?? ""} className="h-8 w-8 rounded-full object-cover border border-slate-200" />
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">
                     {user?.firstName?.[0] ?? "U"}
                   </div>
                 )}
-                <span className="text-sm font-medium text-slate-700">
-                  {user?.firstName ?? "Account"}
-                </span>
+                <span className="text-sm font-medium text-slate-700">{user?.firstName ?? "Account"}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-slate-500 hover:text-red-600"
-                onClick={() => signOut({ redirectUrl: "/" })}
-              >
+              <Button variant="ghost" size="sm" className="gap-1.5 text-slate-500 hover:text-red-600" onClick={() => signOut({ redirectUrl: "/" })}>
                 <LogOut className="h-4 w-4" /> Sign Out
               </Button>
             </div>
@@ -125,22 +259,14 @@ export function Navbar() {
             {isSignedIn && (
               user?.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.imageUrl}
-                  alt=""
-                  className="h-8 w-8 rounded-full object-cover border border-slate-200"
-                />
+                <img src={user.imageUrl} alt="" className="h-8 w-8 rounded-full object-cover border border-slate-200" />
               ) : (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">
                   {user?.firstName?.[0] ?? "U"}
                 </div>
               )
             )}
-            <button
-              className="p-2 rounded-lg hover:bg-[var(--accent)]"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
-            >
+            <button className="p-2 rounded-lg hover:bg-[var(--accent)]" onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle menu">
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
@@ -161,26 +287,30 @@ export function Navbar() {
           <TopTab href="/favorites" icon={<Heart className="h-4 w-4" />} label="Saved" active={pathname === "/favorites"} />
         </nav>
 
-        {/* Mobile search bar — slides in below tabs */}
+        {/* Mobile search bar */}
         {searchOpen && (
-          <div className="md:hidden border-t border-[var(--border)] bg-white px-3 py-2 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                autoFocus
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-                placeholder="City, zip, or place name…"
-                className="h-9 w-full rounded-lg border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-              />
+          <div className="md:hidden border-t border-[var(--border)] bg-white px-3 py-3 space-y-2">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  autoFocus
+                  value={mobileSearchVal}
+                  onChange={(e) => setMobileSearchVal(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
+                  placeholder="City, zip, or neighborhood…"
+                  className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none"
+                />
+              </div>
+              <button onClick={handleMobileSearch} className="rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Go</button>
             </div>
-            <button
-              onClick={handleSearch}
-              className="rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+            <Link
+              href="/results"
+              onClick={() => setSearchOpen(false)}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
             >
-              Go
-            </button>
+              <Building2 className="h-4 w-4 text-slate-400" /> Search by place of worship name →
+            </Link>
           </div>
         )}
 
@@ -204,19 +334,11 @@ export function Navbar() {
               </div>
             )}
             <nav className="flex flex-col gap-1">
-              {isAdmin && (
-                <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
-                  Admin
-                </MobileNavLink>
-              )}
+              {isAdmin && <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>Admin</MobileNavLink>}
               {!isSignedIn ? (
                 <>
-                  <MobileNavLink href="/sign-in" onClick={() => setMobileOpen(false)}>
-                    Sign In
-                  </MobileNavLink>
-                  <MobileNavLink href="/sign-up" onClick={() => setMobileOpen(false)}>
-                    Get Started
-                  </MobileNavLink>
+                  <MobileNavLink href="/sign-in" onClick={() => setMobileOpen(false)}>Sign In</MobileNavLink>
+                  <MobileNavLink href="/sign-up" onClick={() => setMobileOpen(false)}>Get Started</MobileNavLink>
                 </>
               ) : (
                 <button
@@ -230,35 +352,21 @@ export function Navbar() {
           </div>
         )}
       </header>
-
     </>
   );
 }
 
 function TopTab({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors border-b-2",
-        active ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-slate-500"
-      )}
-    >
-      {icon}
-      {label}
+    <Link href={href} className={cn("flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors border-b-2", active ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-slate-500")}>
+      {icon}{label}
     </Link>
   );
 }
 
 function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-        active ? "bg-blue-50 text-[var(--primary)]" : "text-slate-600 hover:bg-[var(--accent)] hover:text-slate-900"
-      )}
-    >
+    <Link href={href} className={cn("flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors", active ? "bg-blue-50 text-[var(--primary)]" : "text-slate-600 hover:bg-[var(--accent)] hover:text-slate-900")}>
       {children}
     </Link>
   );
@@ -271,3 +379,5 @@ function MobileNavLink({ href, onClick, children }: { href: string; onClick: () 
     </Link>
   );
 }
+
+import React from "react";
