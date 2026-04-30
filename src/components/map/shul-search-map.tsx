@@ -13,7 +13,15 @@ interface ShulSearchMapProps {
   onPropertyClick?: (id: string) => void;
   center?: [number, number];
   zoom?: number;
+  worshipType?: string;
 }
+
+const WORSHIP_LEGEND: Record<string, { bg: string; icon: string; label: string }> = {
+  SYNAGOGUE: { bg: "#1a56db", icon: "✡", label: "Synagogue" },
+  CHURCH:    { bg: "#7c3aed", icon: "✝", label: "Church" },
+  MOSQUE:    { bg: "#059669", icon: "☪", label: "Mosque" },
+  TEMPLE:    { bg: "#d97706", icon: "🛕", label: "Temple" },
+};
 
 export function ShulSearchMap({
   properties,
@@ -22,6 +30,7 @@ export function ShulSearchMap({
   onPropertyClick,
   center = [-80.13, 25.96],
   zoom = 12,
+  worshipType = "SYNAGOGUE",
 }: ShulSearchMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -31,6 +40,7 @@ export function ShulSearchMap({
 
   // React-managed popup state
   const [popupProperty, setPopupProperty] = useState<MockProperty | null>(null);
+  const [popupSynagogue, setPopupSynagogue] = useState<MockSynagogue | null>(null);
 
   // ── Initialize map once ────────────────────────────────────────────────────
   useEffect(() => {
@@ -151,17 +161,25 @@ export function ShulSearchMap({
   async function renderSynMarkers(map: mapboxgl.Map, syns: MockSynagogue[]) {
     const mapboxgl = (await import("mapbox-gl")).default;
 
+    const WORSHIP_STYLE: Record<string, { bg: string; icon: string }> = {
+      SYNAGOGUE: { bg: "#1a56db", icon: "✡" },
+      CHURCH:    { bg: "#7c3aed", icon: "✝" },
+      MOSQUE:    { bg: "#059669", icon: "☪" },
+      TEMPLE:    { bg: "#d97706", icon: "🛕" },
+    };
+
     syns.forEach((syn) => {
       if (!syn.lat || !syn.lng || isNaN(syn.lat) || isNaN(syn.lng)) return;
+      const style = WORSHIP_STYLE[syn.worshipType ?? "SYNAGOGUE"] ?? WORSHIP_STYLE.SYNAGOGUE;
       const el = document.createElement("div");
       el.innerHTML = `
         <div style="
           width:28px;height:28px;border-radius:50%;
-          background:#1a56db;border:2px solid white;
+          background:${style.bg};border:2px solid white;
           display:flex;align-items:center;justify-content:center;
           color:white;font-size:13px;cursor:pointer;
           box-shadow:0 2px 8px rgba(0,0,0,0.3);
-        ">✡</div>`;
+        ">${style.icon}</div>`;
 
       const popup = new mapboxgl.Popup({ offset: 18, closeButton: false, closeOnClick: false }).setHTML(`
         <div style="padding:10px;min-width:190px">
@@ -176,9 +194,15 @@ export function ShulSearchMap({
         .setLngLat([syn.lng, syn.lat])
         .addTo(map);
 
-      // Show popup on hover, hide when mouse leaves
+      // Desktop: show native popup on hover
       el.addEventListener("mouseenter", () => popup.setLngLat([syn.lng, syn.lat]).addTo(map));
       el.addEventListener("mouseleave", () => popup.remove());
+      // Mobile: show React card on click/tap
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setPopupSynagogue((prev) => (prev?.id === syn.id ? null : syn));
+        setPopupProperty(null);
+      });
 
       synMarkersRef.current.push(marker);
     });
@@ -188,7 +212,7 @@ export function ShulSearchMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const handler = () => setPopupProperty(null);
+    const handler = () => { setPopupProperty(null); setPopupSynagogue(null); };
     map.on("click", handler);
     return () => { map.off("click", handler); };
   }, [mapRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -286,22 +310,82 @@ export function ShulSearchMap({
         </div>
       )}
 
+      {/* ── React-managed synagogue popup card ─────────────────────────────── */}
+      {popupSynagogue && (
+        <div
+          className="absolute bottom-6 right-4 z-20 w-72 overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => setPopupSynagogue(null)}
+            className="absolute right-2 top-2 z-10 rounded-full bg-black/30 p-1 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Header */}
+          {(() => {
+            const leg = WORSHIP_LEGEND[popupSynagogue.worshipType ?? "SYNAGOGUE"] ?? WORSHIP_LEGEND.SYNAGOGUE;
+            return (
+              <>
+                <div className="px-4 py-3 flex items-center gap-2" style={{ background: leg.bg }}>
+                  <span className="text-white text-lg">{leg.icon}</span>
+                  <span className="text-white font-bold text-sm leading-tight">{popupSynagogue.name}</span>
+                </div>
+
+                {/* Details */}
+                <div className="p-4 space-y-2 text-sm">
+                  <div className="text-slate-500 text-xs font-semibold uppercase tracking-wide">
+                    {DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}
+                  </div>
+                  <div className="text-slate-700">{popupSynagogue.address}, {popupSynagogue.city}, {popupSynagogue.state}</div>
+                  {popupSynagogue.phone && (
+                    <a href={`tel:${popupSynagogue.phone}`} className="block text-blue-600 hover:underline">
+                      {popupSynagogue.phone}
+                    </a>
+                  )}
+                  {popupSynagogue.website && (
+                    <a href={popupSynagogue.website} target="_blank" rel="noopener noreferrer" className="block text-blue-600 hover:underline truncate">
+                      {popupSynagogue.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  )}
+                  <div className="pt-1">
+                    <Link
+                      href={`/synagogue/${popupSynagogue.id}`}
+                      className="block w-full rounded-lg py-2 text-center text-xs font-bold text-white transition-colors"
+                      style={{ background: leg.bg }}
+                    >
+                      View {leg.label} →
+                    </Link>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Legend */}
-      <div className="absolute bottom-6 left-4 flex flex-col gap-1.5 rounded-xl bg-white/95 p-3 shadow-lg text-xs backdrop-blur-sm">
-        <div className="font-semibold text-slate-700 mb-1">Legend</div>
-        <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1a56db] text-white text-[10px]">✡</span>
-          <span className="text-slate-600">Synagogue</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#ff5a1f]" />
-          <span className="text-slate-600">For Sale</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#0e9f6e]" />
-          <span className="text-slate-600">For Rent</span>
-        </div>
-      </div>
+      {(() => {
+        const leg = WORSHIP_LEGEND[worshipType] ?? WORSHIP_LEGEND.SYNAGOGUE;
+        return (
+          <div className="absolute bottom-6 left-4 flex flex-col gap-1.5 rounded-xl bg-white/95 p-3 shadow-lg text-xs backdrop-blur-sm">
+            <div className="font-semibold text-slate-700 mb-1">Legend</div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full text-white text-[10px]" style={{ background: leg.bg }}>{leg.icon}</span>
+              <span className="text-slate-600">{leg.label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm bg-[#ff5a1f]" />
+              <span className="text-slate-600">For Sale</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm bg-[#0e9f6e]" />
+              <span className="text-slate-600">For Rent</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

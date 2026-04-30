@@ -199,30 +199,57 @@ async function fetchSimplyRetsPage(type: "residential" | "rental"): Promise<unkn
 
 type ParsedProperty = NonNullable<ReturnType<typeof parseRealtorProperty>>;
 
-async function upsertProperty(prop: ParsedProperty, synagogues: { id: string; lat: number; lng: number }[]): Promise<"imported" | "skipped"> {
-  const nearby = synagogues
+async function upsertProperty(
+  prop: ParsedProperty,
+  synagogues: { id: string; lat: number; lng: number; worshipType: string }[]
+): Promise<"imported" | "skipped"> {
+  const shuls    = synagogues.filter((s) => s.worshipType === "SYNAGOGUE");
+  const churches = synagogues.filter((s) => s.worshipType === "CHURCH");
+  const mosques  = synagogues.filter((s) => s.worshipType === "MOSQUE");
+
+  const nearbyShuls = shuls
     .map((s) => ({ synagogue: s, dist: distanceMiles(prop.lat, prop.lng, s.lat, s.lng) }))
     .filter((x) => x.dist <= 2.0)
     .sort((a, b) => a.dist - b.dist);
 
-  if (nearby.length === 0) return "skipped";
+  if (nearbyShuls.length === 0) return "skipped";
 
-  const nearest        = nearby[0];
-  const count1mi       = nearby.filter((x) => x.dist <= 1.0).length;
+  const nearest        = nearbyShuls[0];
+  const count1mi       = nearbyShuls.filter((x) => x.dist <= 1.0).length;
   const proximityScore = (1.0 / nearest.dist) * 5 + count1mi * 0.8 + 1.5;
+
+  const nearestChurch = churches
+    .map((s) => ({ id: s.id, dist: distanceMiles(prop.lat, prop.lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)[0];
+  const nearestMosque = mosques
+    .map((s) => ({ id: s.id, dist: distanceMiles(prop.lat, prop.lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)[0];
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { addressKey, ...propData } = prop;
 
   try {
-    const upserted = await prisma.property.upsert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const upserted = await (prisma.property as any).upsert({
       where:  { externalId: prop.externalId },
-      create: { ...propData, nearestSynagogueId: nearest.synagogue.id, nearestSynagugueDist: nearest.dist, synagogueCount1mi: count1mi, proximityScore },
-      update: { title: propData.title, price: propData.price, status: propData.status, imageUrls: propData.imageUrls, isApproved: true, nearestSynagogueId: nearest.synagogue.id, nearestSynagugueDist: nearest.dist, synagogueCount1mi: count1mi, proximityScore },
+      create: {
+        ...propData,
+        nearestSynagogueId: nearest.synagogue.id, nearestSynagugueDist: nearest.dist,
+        synagogueCount1mi: count1mi, proximityScore,
+        nearestChurchId: nearestChurch?.id, nearestChurchDist: nearestChurch?.dist,
+        nearestMosqueId: nearestMosque?.id, nearestMosqueDist: nearestMosque?.dist,
+      },
+      update: {
+        title: propData.title, price: propData.price, status: propData.status, imageUrls: propData.imageUrls, isApproved: true,
+        nearestSynagogueId: nearest.synagogue.id, nearestSynagugueDist: nearest.dist,
+        synagogueCount1mi: count1mi, proximityScore,
+        nearestChurchId: nearestChurch?.id, nearestChurchDist: nearestChurch?.dist,
+        nearestMosqueId: nearestMosque?.id, nearestMosqueDist: nearestMosque?.dist,
+      },
     });
 
     await Promise.all(
-      nearby.slice(0, 5).map(({ synagogue, dist }) =>
+      nearbyShuls.slice(0, 5).map(({ synagogue, dist }) =>
         prisma.propertySynagogueDistance.upsert({
           where:  { propertyId_synagogueId: { propertyId: upserted.id, synagogueId: synagogue.id } },
           create: { propertyId: upserted.id, synagogueId: synagogue.id, distanceMi: dist, walkMinutes: Math.round((dist / 3) * 60) },
@@ -234,7 +261,7 @@ async function upsertProperty(prop: ParsedProperty, synagogues: { id: string; la
   } catch { return "skipped"; }
 }
 
-async function batchUpsert(props: ParsedProperty[], synagogues: { id: string; lat: number; lng: number }[], batchSize = 20) {
+async function batchUpsert(props: ParsedProperty[], synagogues: { id: string; lat: number; lng: number; worshipType: string }[], batchSize = 20) {
   let imported = 0, skipped = 0;
   for (let i = 0; i < props.length; i += batchSize) {
     const results = await Promise.all(props.slice(i, i + batchSize).map((p) => upsertProperty(p, synagogues)));
@@ -247,7 +274,15 @@ async function batchUpsert(props: ParsedProperty[], synagogues: { id: string; la
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 export async function POST() {
-  const synagogues = await prisma.synagogue.findMany();
+  if (IS_DEMO && !RAPIDAPI_KEY) {
+    return NextResponse.json(
+      { error: "RAPIDAPI_KEY environment variable is not set. Add it in Vercel → Settings → Environment Variables." },
+      { status: 500 }
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const synagogues = await (prisma.synagogue as any).findMany({ select: { id: true, lat: true, lng: true, worshipType: true } }) as { id: string; lat: number; lng: number; worshipType: string }[];
 
   try {
     let allRaw: { raw: unknown; listingType: "SALE" | "RENT" }[] = [];
