@@ -14,8 +14,10 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"address" | "place">("address");
   const [addressVal, setAddressVal] = useState("");
   const [placeVal, setPlaceVal] = useState("");
-  const [suggestions, setSuggestions] = useState<{ id: string; name: string; city: string; worshipType: string }[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<{ place_name: string; text: string }[]>([]);
+  const [placeSuggestions, setPlaceSuggestions] = useState<{ id: string; name: string; city: string; worshipType: string }[]>([]);
+  const [loadingAddress, setLoadingAddress] = useState(false);
+  const [loadingPlace, setLoadingPlace] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -27,24 +29,46 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  // Autocomplete places by name
+  // Address autocomplete via Mapbox Geocoding
   useEffect(() => {
-    if (tab !== "place" || placeVal.trim().length < 2) { setSuggestions([]); return; }
+    if (addressVal.trim().length < 2) { setAddressSuggestions([]); return; }
     const timer = setTimeout(async () => {
-      setLoadingSuggestions(true);
+      setLoadingAddress(true);
+      try {
+        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addressVal.trim())}.json?access_token=${token}&country=US&proximity=-80.2,26.1&bbox=-81.0,25.0,-79.8,27.0&types=place,postcode,neighborhood,address&limit=5`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setAddressSuggestions(data.features ?? []);
+        }
+      } finally {
+        setLoadingAddress(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [addressVal]);
+
+  // Place name autocomplete
+  useEffect(() => {
+    if (tab !== "place" || placeVal.trim().length < 2) { setPlaceSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      setLoadingPlace(true);
       try {
         const res = await fetch(`/api/search/places?q=${encodeURIComponent(placeVal.trim())}`);
-        if (res.ok) setSuggestions(await res.json());
+        if (res.ok) setPlaceSuggestions(await res.json());
       } finally {
-        setLoadingSuggestions(false);
+        setLoadingPlace(false);
       }
     }, 250);
     return () => clearTimeout(timer);
   }, [placeVal, tab]);
 
-  function handleAddressSearch() {
-    if (!addressVal.trim()) return;
-    router.push(`/results?q=${encodeURIComponent(addressVal.trim())}`);
+  function handleAddressSearch(q?: string) {
+    const val = q ?? addressVal;
+    if (!val.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(val.trim())}`);
     onClose();
   }
 
@@ -80,38 +104,53 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
       {/* Address tab */}
       {tab === "address" && (
         <div className="p-4">
-          <p className="mb-3 text-xs text-slate-500">Enter a city, zip code, or neighborhood to find nearby listings.</p>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                autoFocus
-                value={addressVal}
-                onChange={(e) => setAddressVal(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddressSearch()}
-                placeholder="City, zip code, or neighborhood…"
-                className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
-              />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              autoFocus
+              value={addressVal}
+              onChange={(e) => setAddressVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddressSearch()}
+              placeholder="City, zip code, or neighborhood…"
+              className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          </div>
+
+          {/* Mapbox suggestions */}
+          {loadingAddress && <p className="mt-2 text-center text-xs text-slate-400">Searching…</p>}
+          {addressSuggestions.length > 0 && (
+            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-[var(--border)] overflow-hidden">
+              {addressSuggestions.map((s) => (
+                <li key={s.place_name}>
+                  <button
+                    onClick={() => handleAddressSearch(s.text)}
+                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-800">{s.text}</div>
+                      <div className="text-xs text-slate-400 truncate">{s.place_name}</div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Quick chips — shown when no suggestions yet */}
+          {addressSuggestions.length === 0 && !loadingAddress && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {["Aventura", "Boca Raton", "Hollywood", "Surfside"].map((city) => (
+                <button
+                  key={city}
+                  onClick={() => { router.push(`/results?q=${encodeURIComponent(city)}`); onClose(); }}
+                  className="rounded-full border border-[var(--border)] bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  {city}
+                </button>
+              ))}
             </div>
-            <button
-              onClick={handleAddressSearch}
-              className="rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-            >
-              Search
-            </button>
-          </div>
-          {/* Quick chips */}
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {["Aventura", "Boca Raton", "Hollywood", "Surfside"].map((city) => (
-              <button
-                key={city}
-                onClick={() => { router.push(`/results?q=${encodeURIComponent(city)}`); onClose(); }}
-                className="rounded-full border border-[var(--border)] bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                {city}
-              </button>
-            ))}
-          </div>
+          )}
         </div>
       )}
 
@@ -131,12 +170,12 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Suggestions */}
-          {loadingSuggestions && (
+          {loadingPlace && (
             <p className="mt-3 text-center text-xs text-slate-400">Searching…</p>
           )}
-          {suggestions.length > 0 && (
+          {placeSuggestions.length > 0 && (
             <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-[var(--border)] overflow-hidden">
-              {suggestions.map((s) => (
+              {placeSuggestions.map((s) => (
                 <li key={s.id}>
                   <Link
                     href={`/synagogue/${s.id}`}
@@ -153,7 +192,7 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
               ))}
             </ul>
           )}
-          {!loadingSuggestions && placeVal.trim().length >= 2 && suggestions.length === 0 && (
+          {!loadingPlace && placeVal.trim().length >= 2 && placeSuggestions.length === 0 && (
             <p className="mt-3 text-center text-xs text-slate-400">No places found matching &ldquo;{placeVal}&rdquo;</p>
           )}
         </div>
