@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Heart, MapPin, Menu, Search, X, LogOut, LayoutGrid } from "lucide-react";
 import { useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -10,10 +10,20 @@ import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const pathname    = usePathname();
+  const router      = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchVal, setSearchVal]   = useState("");
   const { isSignedIn, user }        = useUser();
   const { signOut }                 = useClerk();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === "liatmorr@gmail.com";
+
+  function handleSearch() {
+    if (!searchVal.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(searchVal.trim())}`);
+    setSearchOpen(false);
+    setSearchVal("");
+  }
 
   return (
     <>
@@ -31,9 +41,32 @@ export function Navbar() {
             <NavLink href="/results" active={pathname === "/results"}>
               <MapPin className="h-3.5 w-3.5" /> Browse
             </NavLink>
-            <NavLink href="/results" active={false}>
-              <Search className="h-3.5 w-3.5" /> Search
-            </NavLink>
+
+            {/* Expandable search */}
+            {searchOpen ? (
+              <div className="flex items-center gap-1 rounded-lg border border-blue-400 bg-white px-2 ring-1 ring-blue-400">
+                <Search className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                <input
+                  autoFocus
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); if (e.key === "Escape") setSearchOpen(false); }}
+                  placeholder="City, zip, or place name…"
+                  className="w-52 py-1.5 text-sm text-slate-800 placeholder-slate-400 outline-none bg-transparent"
+                />
+                <button onClick={() => setSearchOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-[var(--accent)] hover:text-slate-900 transition-colors"
+              >
+                <Search className="h-3.5 w-3.5" /> Search
+              </button>
+            )}
+
             <NavLink href="/favorites" active={pathname === "/favorites"}>
               <Heart className="h-3.5 w-3.5" /> Saved
             </NavLink>
@@ -116,9 +149,40 @@ export function Navbar() {
         {/* Mobile top tab row */}
         <nav className="md:hidden flex border-t border-[var(--border)]">
           <TopTab href="/results" icon={<LayoutGrid className="h-4 w-4" />} label="Browse" active={pathname === "/results"} />
-          <TopTab href="/results" icon={<Search className="h-4 w-4" />} label="Search" active={false} />
+          <button
+            onClick={() => setSearchOpen((v) => !v)}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors border-b-2",
+              searchOpen ? "border-[var(--primary)] text-[var(--primary)]" : "border-transparent text-slate-500"
+            )}
+          >
+            <Search className="h-4 w-4" /> Search
+          </button>
           <TopTab href="/favorites" icon={<Heart className="h-4 w-4" />} label="Saved" active={pathname === "/favorites"} />
         </nav>
+
+        {/* Mobile search bar — slides in below tabs */}
+        {searchOpen && (
+          <div className="md:hidden border-t border-[var(--border)] bg-white px-3 py-2 flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                autoFocus
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
+                placeholder="City, zip, or place name…"
+                className="h-9 w-full rounded-lg border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Go
+            </button>
+          </div>
+        )}
 
         {/* Mobile dropdown menu */}
         {mobileOpen && (
