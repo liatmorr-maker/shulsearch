@@ -336,9 +336,18 @@ export function ShulSearchMap({
                 {/* Details */}
                 <div className="p-4 space-y-2 text-sm">
                   <div className="text-slate-500 text-xs font-semibold uppercase tracking-wide">
-                    {DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}
+                    {leg.label}
+                    {popupSynagogue.denomination !== "OTHER" && popupSynagogue.denomination !== "ALL"
+                      ? ` · ${DENOMINATION_LABELS[popupSynagogue.denomination] ?? popupSynagogue.denomination}`
+                      : ""}
                   </div>
-                  <div className="text-slate-700">{popupSynagogue.address}, {popupSynagogue.city}, {popupSynagogue.state}</div>
+                  {/* Show street address only if it differs from the name, then always show city/state */}
+                  <div className="text-slate-700">
+                    {popupSynagogue.address && popupSynagogue.address !== popupSynagogue.name && (
+                      <>{popupSynagogue.address}, </>
+                    )}
+                    {popupSynagogue.city}{popupSynagogue.city && popupSynagogue.state ? ", " : ""}{popupSynagogue.state}
+                  </div>
                   {popupSynagogue.phone && (
                     <a href={`tel:${popupSynagogue.phone}`} className="block text-blue-600 hover:underline">
                       {popupSynagogue.phone}
