@@ -14,7 +14,7 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"address" | "place">("address");
   const [addressVal, setAddressVal] = useState("");
   const [placeVal, setPlaceVal] = useState("");
-  const [addressSuggestions, setAddressSuggestions] = useState<{ place_name: string; text: string }[]>([]);
+  const [addressSuggestions, setAddressSuggestions] = useState<{ place_name: string; text: string; center?: [number,number]; context?: {id:string;text:string}[]; place_type?: string[] }[]>([]);
   const [placeSuggestions, setPlaceSuggestions] = useState<{ id: string; name: string; city: string; worshipType: string }[]>([]);
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingPlace, setLoadingPlace] = useState(false);
@@ -64,10 +64,31 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(timer);
   }, [placeVal, tab]);
 
-  function handleAddressSearch(q?: string) {
-    const val = q ?? addressVal;
-    if (!val.trim()) return;
-    router.push(`/results?q=${encodeURIComponent(val.trim())}`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function handleMapboxSelect(feature: any) {
+    // Extract the city from context, or use text if it's already a place/postcode
+    const placeType = feature.place_type?.[0] ?? "";
+    let city = feature.text as string;
+
+    if (placeType === "address" || placeType === "neighborhood") {
+      // Look for city (place) or postcode in context
+      const placeCtx = (feature.context ?? []).find((c: {id:string;text:string}) => c.id.startsWith("place."));
+      const zipCtx   = (feature.context ?? []).find((c: {id:string;text:string}) => c.id.startsWith("postcode."));
+      city = placeCtx?.text ?? zipCtx?.text ?? city;
+    }
+
+    const params = new URLSearchParams({ q: city });
+    if (feature.center) {
+      params.set("lng", String(feature.center[0]));
+      params.set("lat", String(feature.center[1]));
+    }
+    router.push(`/results?${params.toString()}`);
+    onClose();
+  }
+
+  function handleAddressSearch() {
+    if (!addressVal.trim()) return;
+    router.push(`/results?q=${encodeURIComponent(addressVal.trim())}`);
     onClose();
   }
 
@@ -123,7 +144,7 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
               {addressSuggestions.map((s) => (
                 <li key={s.place_name}>
                   <button
-                    onClick={() => handleAddressSearch(s.text)}
+                    onClick={() => handleMapboxSelect(s)}
                     className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
                   >
                     <MapPin className="h-4 w-4 flex-shrink-0 text-slate-400" />

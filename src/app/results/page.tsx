@@ -14,7 +14,7 @@ const VALID_WORSHIP_TYPES: WorshipType[] = ["SYNAGOGUE", "CHURCH", "MOSQUE", "TE
 export default async function ResultsPage({
   searchParams,
 }: {
-  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string };
+  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string; lat?: string; lng?: string };
 }) {
   const cityParam = searchParams.city ?? searchParams.q ?? undefined;
   const initialWorshipType: WorshipType =

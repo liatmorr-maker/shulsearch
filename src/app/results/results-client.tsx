@@ -39,7 +39,7 @@ function MapPlaceholder() {
 }
 
 interface ResultsClientProps {
-  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string };
+  searchParams: { q?: string; city?: string; zip?: string; worshipType?: string; lat?: string; lng?: string };
   initialProperties: MockProperty[];
   initialSynagogues: MockSynagogue[];
   initialWorshipType?: import("@/store/filter-store").WorshipType;
@@ -309,8 +309,12 @@ export function ResultsClient({
               setHighlightedId(id);
               setMobileView("list");
             }}
-            center={[-80.20, 26.10]}
-            zoom={searchParams.q ?? searchParams.city ?? searchParams.zip ? 12 : 10}
+            center={
+              searchParams.lng && searchParams.lat
+                ? [parseFloat(searchParams.lng), parseFloat(searchParams.lat)]
+                : [-80.20, 26.10]
+            }
+            zoom={searchParams.q ?? searchParams.city ?? searchParams.zip ?? searchParams.lat ? 13 : 10}
             worshipType={effectiveWorshipType}
           />
         </div>
