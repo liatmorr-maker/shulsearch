@@ -29,20 +29,19 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  // Address autocomplete via Mapbox Geocoding
+  // Address autocomplete: Mapbox geocoding + nearby places of worship
   useEffect(() => {
-    if (addressVal.trim().length < 2) { setAddressSuggestions([]); return; }
+    if (addressVal.trim().length < 2) { setAddressSuggestions([]); setPlaceSuggestions([]); return; }
     const timer = setTimeout(async () => {
       setLoadingAddress(true);
       try {
         const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-        const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addressVal.trim())}.json?access_token=${token}&country=US&proximity=-80.2,26.1&bbox=-81.0,25.0,-79.8,27.0&types=place,postcode,neighborhood,address&limit=5`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setAddressSuggestions(data.features ?? []);
-        }
+        const [geoRes, placesRes] = await Promise.all([
+          fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addressVal.trim())}.json?access_token=${token}&country=US&proximity=-80.2,26.1&bbox=-81.0,25.0,-79.8,27.0&types=place,postcode,neighborhood,address&limit=4`),
+          fetch(`/api/search/places?q=${encodeURIComponent(addressVal.trim())}`),
+        ]);
+        if (geoRes.ok) { const d = await geoRes.json(); setAddressSuggestions(d.features ?? []); }
+        if (placesRes.ok) setPlaceSuggestions(await placesRes.json());
       } finally {
         setLoadingAddress(false);
       }
@@ -116,10 +115,11 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          {/* Mapbox suggestions */}
           {loadingAddress && <p className="mt-2 text-center text-xs text-slate-400">Searching…</p>}
-          {addressSuggestions.length > 0 && (
-            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-[var(--border)] overflow-hidden">
+
+          {/* Unified results: locations + places of worship */}
+          {(addressSuggestions.length > 0 || placeSuggestions.length > 0) && (
+            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-[var(--border)] overflow-hidden max-h-72 overflow-y-auto">
               {addressSuggestions.map((s) => (
                 <li key={s.place_name}>
                   <button
@@ -134,11 +134,33 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
                   </button>
                 </li>
               ))}
+              {placeSuggestions.length > 0 && (
+                <>
+                  <li className="bg-slate-50 px-3 py-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Places of Worship</span>
+                  </li>
+                  {placeSuggestions.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={`/synagogue/${s.id}`}
+                        onClick={onClose}
+                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="text-base w-5 text-center">{WORSHIP_ICON[s.worshipType] ?? "🏛"}</span>
+                        <div>
+                          <div className="text-sm font-medium text-slate-800">{s.name}</div>
+                          <div className="text-xs text-slate-500">{s.city}</div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </>
+              )}
             </ul>
           )}
 
-          {/* Quick chips — shown when no suggestions yet */}
-          {addressSuggestions.length === 0 && !loadingAddress && (
+          {/* Quick chips — shown when input is empty */}
+          {addressVal.trim().length < 2 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Aventura", "Boca Raton", "Hollywood", "Surfside"].map((city) => (
                 <button
