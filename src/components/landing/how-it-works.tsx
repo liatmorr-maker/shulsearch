@@ -28,7 +28,7 @@ export function HowItWorks() {
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-slate-900">How ShulSearch Works</h2>
           <p className="mt-3 text-slate-500">
-            Find homes based on proximity to synagogues and community amenities — so you can easily explore walkable options that fit your lifestyle.
+            Find homes based on proximity to places of worship and community amenities — so you can easily explore walkable options that fit your lifestyle.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-3">

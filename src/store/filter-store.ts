@@ -1,7 +1,6 @@
 import { create } from "zustand";
 
 export type ListingType = "ALL" | "SALE" | "RENT";
-export type WorshipType = "SYNAGOGUE" | "CHURCH" | "MOSQUE" | "TEMPLE";
 export type Denomination =
   | "ALL"
   | "ORTHODOX"
@@ -30,7 +29,6 @@ export type HomeTypeLabel = (typeof HOME_TYPES)[number]["label"];
 export interface FilterState {
   query: string;
   listingType: ListingType;
-  worshipType: WorshipType;
   maxDistanceMi: DistanceFilter;
   priceMin: number;
   priceMax: number;
@@ -43,7 +41,6 @@ export interface FilterState {
   // actions
   setQuery: (q: string) => void;
   setListingType: (t: ListingType) => void;
-  setWorshipType: (t: WorshipType) => void;
   setMaxDistance: (d: DistanceFilter) => void;
   setPriceRange: (min: number, max: number) => void;
   setBedsMin: (b: number) => void;
@@ -59,7 +56,6 @@ export const ALL_HOME_TYPES = HOME_TYPES.map((h) => h.label) as HomeTypeLabel[];
 const DEFAULTS = {
   query: "",
   listingType: "ALL" as ListingType,
-  worshipType: "SYNAGOGUE" as WorshipType,
   maxDistanceMi: null as DistanceFilter,
   priceMin: 0,
   priceMax: 10_000_000_00, // $10M
@@ -73,15 +69,14 @@ const DEFAULTS = {
 export const useFilterStore = create<FilterState>((set) => ({
   ...DEFAULTS,
 
-  setQuery:       (q) => set({ query: q }),
-  setListingType: (t) => set({ listingType: t }),
-  setWorshipType: (t) => set({ worshipType: t, maxDistanceMi: null, denomination: "ALL" }),
-  setMaxDistance: (d) => set({ maxDistanceMi: d }),
-  setPriceRange:  (min, max) => set({ priceMin: min, priceMax: max }),
-  setBedsMin:     (b) => set({ bedsMin: b }),
-  setBathsMin:    (b) => set({ bathsMin: b }),
+  setQuery:      (q) => set({ query: q }),
+  setListingType:(t) => set({ listingType: t }),
+  setMaxDistance:(d) => set({ maxDistanceMi: d }),
+  setPriceRange: (min, max) => set({ priceMin: min, priceMax: max }),
+  setBedsMin:    (b) => set({ bedsMin: b }),
+  setBathsMin:   (b) => set({ bathsMin: b }),
   setDenomination:(d) => set({ denomination: d }),
-  setHomeTypes:   (types) => set({ homeTypes: types }),
-  setSortBy:      (s) => set({ sortBy: s }),
-  reset:          () => set({ ...DEFAULTS }),
+  setHomeTypes:  (types) => set({ homeTypes: types }),
+  setSortBy:     (s) => set({ sortBy: s }),
+  reset:         () => set({ ...DEFAULTS }),
 }));
