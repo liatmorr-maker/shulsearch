@@ -87,13 +87,15 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-bold text-slate-800">7. Synagogue &amp; Location Data</h2>
+          <h2 className="mb-2 text-lg font-bold text-slate-800">7. Place of Worship &amp; Location Data</h2>
           <p>
-            Synagogue locations, distances, denominations, and related information are provided
-            for general informational purposes only. ShulSearch does not guarantee the accuracy
-            of synagogue locations, hours of service, or denominational affiliations. Distances,
-            travel times, and proximity calculations are approximate and may vary. Users should
-            independently verify all synagogue and location information before relying on it.
+            Information about places of worship — including synagogues, churches, mosques, temples,
+            and other religious institutions — their locations, distances, denominations, and related
+            details are provided for general informational purposes only. ShulSearch does not
+            guarantee the accuracy of location data, hours of service, denominational affiliations,
+            or any other information about places of worship. Distances, travel times, and proximity
+            calculations are approximate and may vary. Users should independently verify all
+            place-of-worship and location information before relying on it.
           </p>
         </section>
 
@@ -122,7 +124,7 @@ export default function TermsPage() {
           <p>You agree not to:</p>
           <ul className="mt-2 list-disc space-y-1 pl-6">
             <li>Use the Site for any unlawful purpose</li>
-            <li>Scrape, harvest, or systematically download listing or synagogue data</li>
+            <li>Scrape, harvest, or systematically download listing or place-of-worship data</li>
             <li>Attempt to gain unauthorized access to any part of the Site</li>
             <li>Transmit spam, malware, or harmful content</li>
             <li>Misrepresent your identity or affiliation</li>

@@ -30,7 +30,7 @@ export function UsageGateModal({ onClose }: Props) {
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
         {/* Top banner */}
         <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 px-8 py-8 text-center text-white">
-          <div className="mb-3 text-5xl">✡</div>
+          <div className="mb-3 flex justify-center"><Home className="h-12 w-12 text-blue-300" /></div>
           <h2 className="text-2xl font-extrabold">You&apos;ve explored 10 listings!</h2>
           <p className="mt-2 text-blue-200 text-sm">
             Create a free account to keep browsing ShulSearch

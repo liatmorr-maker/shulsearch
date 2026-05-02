@@ -289,7 +289,7 @@ export function NearClient({ synagogues }: Props) {
       {/* Header */}
       <div className="mb-6 text-center">
         <h1 className="mb-2 text-3xl font-extrabold text-slate-900">Find What&apos;s Near You</h1>
-        <p className="text-slate-500">Search by address or by synagogue name</p>
+        <p className="text-slate-500">Search by address or by place of worship name</p>
       </div>
 
       {/* Mode toggle */}
@@ -312,8 +312,8 @@ export function NearClient({ synagogues }: Props) {
               mode === "shul" ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
             )}
           >
-            <span className="text-base leading-none">✡</span>
-            Search by Shul Name
+            <span className="text-base leading-none">🛐</span>
+            Search by Place of Worship
           </button>
         </div>
       </div>
@@ -432,8 +432,8 @@ export function NearClient({ synagogues }: Props) {
 
           {!addrSearched && (
             <div className="mt-12 text-center text-slate-400">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-4xl">✡</div>
-              <p className="text-sm">Enter an address above to find nearby synagogues and listings</p>
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-4xl">📍</div>
+              <p className="text-sm">Enter an address above to find nearby places of worship and listings</p>
             </div>
           )}
         </>
@@ -582,10 +582,10 @@ export function NearClient({ synagogues }: Props) {
 
           {!shulSearched && !shulLoading && (
             <div className="mt-12 text-center text-slate-400">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-4xl">✡</div>
-              <p className="text-sm">Type a synagogue name above to see nearby available listings</p>
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-4xl">🛐</div>
+              <p className="text-sm">Type a place of worship name above to see nearby available listings</p>
               <p className="text-xs mt-1 text-slate-300">
-                {synagogues.length} synagogues in our database
+                {synagogues.length} places of worship in our database
               </p>
             </div>
           )}

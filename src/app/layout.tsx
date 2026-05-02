@@ -6,9 +6,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.shulsearch.com"),
-  title: { default: "ShulSearch – Find Homes Near Synagogues", template: "%s | ShulSearch" },
-  description: "Discover homes for sale and rent ranked by proximity to synagogues across South Florida.",
-  keywords: ["Jewish real estate", "synagogue proximity", "Aventura homes", "Boca Raton real estate", "shul", "kosher neighborhood"],
+  title: { default: "ShulSearch – Find Homes Near Places of Worship", template: "%s | ShulSearch" },
+  description: "Discover homes for sale and rent ranked by proximity to synagogues, churches, mosques, and temples across South Florida.",
+  keywords: ["real estate near places of worship", "synagogue proximity homes", "Aventura homes", "Boca Raton real estate", "South Florida real estate", "walkable community homes"],
   openGraph: {
     siteName: "ShulSearch",
     url: "https://www.shulsearch.com",

@@ -323,6 +323,12 @@ export function ResultsClient({
           />
         </div>
       </div>
+
+      {/* Equal Housing Opportunity — required on all IDX/MLS display pages */}
+      <div className="border-t border-slate-100 bg-white px-4 py-2 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5 flex-wrap">
+        <span className="font-bold text-slate-500">⊜ Equal Housing Opportunity.</span>
+        All real estate advertised herein is subject to the Federal Fair Housing Act, which makes it illegal to indicate any preference, limitation, or discrimination based on race, color, religion, sex, national origin, disability, familial status, or any other protected class.
+      </div>
     </div>
   );
 }

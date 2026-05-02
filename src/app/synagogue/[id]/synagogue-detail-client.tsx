@@ -171,7 +171,7 @@ export function SynagogueDetailClient({ synagogue, nearbyProperties }: Props) {
                       <PropertyCard property={p} />
                       {dist && (
                         <p className="mt-1.5 pl-1 text-xs text-blue-600">
-                          {formatDistance(dist.distanceMi)} from this shul · {dist.walkMinutes} min walk
+                          {formatDistance(dist.distanceMi)} from this location · {dist.walkMinutes} min walk
                         </p>
                       )}
                     </div>

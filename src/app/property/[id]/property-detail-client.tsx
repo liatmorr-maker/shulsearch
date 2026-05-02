@@ -164,10 +164,10 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
             )}
           </div>
 
-          {/* Nearby synagogues list */}
+          {/* Nearby places of worship list */}
           <div>
             <h2 className="mb-4 text-lg font-semibold text-slate-900">
-              Synagogues Within 1.5 Miles
+              Nearby Places of Worship
             </h2>
             <div className="space-y-3">
               {nearbyShuls.map((sd) => (
@@ -199,7 +199,7 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
 
           {/* Map */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Location &amp; Synagogues</h2>
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">Location &amp; Places of Worship</h2>
             <div className="h-80 overflow-hidden rounded-2xl border border-[var(--border)]">
               <ShulSearchMap
                 properties={[property]}
@@ -250,11 +250,11 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
               </p>
             </div>
 
-            {/* Shul count badge */}
+            {/* Nearby worship count badge */}
             <div className="rounded-xl bg-slate-50 border border-[var(--border)] p-4 text-center">
               <div className="text-3xl font-extrabold text-blue-700">{nearbyShuls.length}</div>
               <div className="text-sm text-slate-600 mt-1">
-                synagogue{nearbyShuls.length !== 1 ? "s" : ""} within 1.5 miles
+                place{nearbyShuls.length !== 1 ? "s" : ""} of worship within 1.5 miles
               </div>
             </div>
           </div>

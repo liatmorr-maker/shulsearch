@@ -11,7 +11,7 @@ export async function FeaturedListings() {
         <div className="mb-10 flex items-end justify-between">
           <div>
             <h2 className="text-3xl font-bold text-slate-900">Featured Listings</h2>
-            <p className="mt-1 text-slate-500">Hand-picked homes in prime shul-walking locations</p>
+            <p className="mt-1 text-slate-500">Hand-picked homes in walkable locations near places of worship</p>
           </div>
           <Link
             href="/results"

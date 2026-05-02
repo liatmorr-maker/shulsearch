@@ -133,7 +133,7 @@ export function LandingHero() {
         {/* Badge */}
         <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm border border-white/20">
           <MapPin className={cn("h-3.5 w-3.5", tab.accent)} />
-          South Florida&apos;s #1 Home Search by Community
+          South Florida&apos;s Home Search Built Around Community
         </div>
 
         <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-balance">

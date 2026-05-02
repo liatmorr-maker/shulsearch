@@ -4,19 +4,19 @@ import { prisma } from "@/lib/prisma";
 const AREAS = [
   {
     name: "Aventura",
-    description: "Luxury high-rises & walkable community with the highest shul density in South Florida",
+    description: "Luxury high-rises in a walkable community with easy access to multiple places of worship and vibrant amenities",
     image: "https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=600&q=80",
     gradient: "from-blue-900/70",
   },
   {
     name: "Boca Raton",
-    description: "Established Jewish community with beautiful single-family homes and top-rated schools",
+    description: "Beautiful single-family homes in an established neighborhood with top-rated schools and diverse community resources",
     image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80",
     gradient: "from-amber-900/60",
   },
   {
     name: "Sunny Isles Beach",
-    description: "Oceanfront luxury condos steps from Chabad, Young Israel, and the beach",
+    description: "Oceanfront luxury condos with proximity to multiple places of worship, world-class beaches, and vibrant community life",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
     gradient: "from-teal-900/70",
   },
@@ -80,7 +80,7 @@ export async function PopularAreas() {
                 <p className="mt-1 text-sm text-white/80">{area.description}</p>
                 <div className="mt-3 flex gap-3 text-xs font-medium">
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
-                    ✡ {shulByCity[area.name] ?? 0} shuls
+                    🛐 {shulByCity[area.name] ?? 0} places of worship
                   </span>
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
                     🏠 {listingsByCity[area.name] ?? 0} listings
