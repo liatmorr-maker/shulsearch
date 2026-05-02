@@ -292,6 +292,7 @@ export function ResultsClient({
                   property={property}
                   isHighlighted={highlightedId === property.id}
                   onHover={setHighlightedId}
+                  worshipType={effectiveWorshipType}
                 />
               ))
             )}

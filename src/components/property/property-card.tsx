@@ -9,19 +9,38 @@ import type { MockProperty } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 
+const WORSHIP_INFO: Record<string, { icon: string; bg: string; text: string; label: string }> = {
+  SYNAGOGUE: { icon: "✡", bg: "bg-blue-50 hover:bg-blue-100",  text: "text-blue-900", label: "Synagogue" },
+  CHURCH:    { icon: "✝", bg: "bg-purple-50 hover:bg-purple-100", text: "text-purple-900", label: "Church" },
+  MOSQUE:    { icon: "☪", bg: "bg-emerald-50 hover:bg-emerald-100", text: "text-emerald-900", label: "Mosque" },
+  TEMPLE:    { icon: "🛕", bg: "bg-amber-50 hover:bg-amber-100", text: "text-amber-900", label: "Temple" },
+};
+
 interface PropertyCardProps {
   property: MockProperty;
   isHighlighted?: boolean;
   onHover?: (id: string | null) => void;
   initialSaved?: boolean;
+  worshipType?: string;
 }
 
-export function PropertyCard({ property, isHighlighted, onHover, initialSaved = false }: PropertyCardProps) {
+export function PropertyCard({ property, isHighlighted, onHover, initialSaved = false, worshipType = "SYNAGOGUE" }: PropertyCardProps) {
   const [saved, setSaved]     = useState(initialSaved);
   const [loading, setLoading] = useState(false);
   const { isSignedIn }        = useUser();
   const { openSignIn }        = useClerk();
   const nearestShul           = property.synagogueDistances?.[0];
+  const worship               = WORSHIP_INFO[worshipType] ?? WORSHIP_INFO.SYNAGOGUE;
+
+  // Distance to nearest place of the active worship type
+  const nearestDist: number | undefined =
+    worshipType === "SYNAGOGUE" ? nearestShul?.distanceMi :
+    worshipType === "CHURCH"    ? property.nearestChurchDist :
+    worshipType === "MOSQUE"    ? property.nearestMosqueDist :
+    worshipType === "TEMPLE"    ? property.nearestTempleDist :
+    undefined;
+
+  const walkMins = nearestDist != null ? Math.round(nearestDist * 20) : null;
 
   // Sync with server-side saved state when it loads
   useEffect(() => { setSaved(initialSaved); }, [initialSaved]);
@@ -129,14 +148,14 @@ export function PropertyCard({ property, isHighlighted, onHover, initialSaved = 
           )}
         </div>
 
-        {nearestShul && (
+        {worshipType === "SYNAGOGUE" && nearestShul ? (
           <Link
             href={`/synagogue/${nearestShul.synagogueId}`}
-            className="pointer-events-auto flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs hover:bg-blue-100 transition-colors"
+            className={`pointer-events-auto flex items-center gap-2 rounded-lg px-3 py-2 text-xs transition-colors ${worship.bg}`}
           >
-            <span className="text-base">✡</span>
+            <span className="text-base">{worship.icon}</span>
             <div className="min-w-0">
-              <div className="font-medium text-blue-900 truncate">{nearestShul.synagogue.name}</div>
+              <div className={`font-medium truncate ${worship.text}`}>{nearestShul.synagogue.name}</div>
               <div className="text-blue-600">
                 {formatDistance(nearestShul.distanceMi)} · {nearestShul.walkMinutes} min walk
                 {nearestShul.synagogue.denomination !== "OTHER" && (
@@ -145,9 +164,19 @@ export function PropertyCard({ property, isHighlighted, onHover, initialSaved = 
               </div>
             </div>
           </Link>
-        )}
+        ) : worshipType !== "SYNAGOGUE" && nearestDist != null ? (
+          <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${worship.bg}`}>
+            <span className="text-base">{worship.icon}</span>
+            <div className="min-w-0">
+              <div className={`font-medium ${worship.text}`}>Nearest {worship.label}</div>
+              <div className="text-slate-500">
+                {formatDistance(nearestDist)}{walkMins != null ? ` · ${walkMins} min walk` : ""}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
-        {property.synagogueCount1mi > 1 && (
+        {worshipType === "SYNAGOGUE" && property.synagogueCount1mi > 1 && (
           <p className="mt-2 text-xs text-slate-500">
             +{property.synagogueCount1mi - 1} more shul{property.synagogueCount1mi > 2 ? "s" : ""} within 1 mi
           </p>
