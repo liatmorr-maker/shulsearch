@@ -132,6 +132,7 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
               onChange={(e) => setAddressVal(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddressSearch()}
               placeholder="City, zip code, or neighborhood…"
+              aria-label="Search by city, zip code, or neighborhood"
               className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
             />
           </div>
@@ -208,6 +209,7 @@ function SearchDropdown({ onClose }: { onClose: () => void }) {
               value={placeVal}
               onChange={(e) => setPlaceVal(e.target.value)}
               placeholder="e.g. Chabad of Aventura, St. Patrick's…"
+              aria-label="Search by place of worship name"
               className="h-10 w-full rounded-xl border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
             />
           </div>
@@ -322,7 +324,7 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 {user?.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.imageUrl} alt={user.firstName ?? ""} className="h-8 w-8 rounded-full object-cover border border-slate-200" />
+                  <img src={user.imageUrl} alt={`${user.firstName ?? "User"} profile photo`} className="h-8 w-8 rounded-full object-cover border border-slate-200" />
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold">
                     {user?.firstName?.[0] ?? "U"}

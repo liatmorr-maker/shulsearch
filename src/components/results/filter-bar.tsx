@@ -240,7 +240,7 @@ function MobileFilterSheet({ open, onClose }: { open: boolean; onClose: () => vo
         {/* Header */}
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-100 bg-white px-4 py-4">
           <h2 className="text-base font-bold text-slate-900">Filters</h2>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-slate-100">
+          <button onClick={onClose} aria-label="Close filters" className="rounded-full p-1.5 hover:bg-slate-100">
             <X className="h-5 w-5 text-slate-500" />
           </button>
         </div>

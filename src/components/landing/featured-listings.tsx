@@ -15,6 +15,7 @@ export async function FeaturedListings() {
           </div>
           <Link
             href="/results"
+            aria-label="View all listings"
             className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
           >
             View all listings →

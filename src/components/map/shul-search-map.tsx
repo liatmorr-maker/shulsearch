@@ -219,7 +219,12 @@ export function ShulSearchMap({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" />
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="region"
+        aria-label="Interactive map showing properties and nearby places of worship"
+      />
 
       {/* ── React-managed property popup card ──────────────────────────────── */}
       {popupProperty && (
@@ -231,6 +236,7 @@ export function ShulSearchMap({
           <button
             onClick={() => setPopupProperty(null)}
             className="absolute right-2 top-2 z-10 rounded-full bg-black/30 p-1 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+            aria-label="Close"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -319,6 +325,7 @@ export function ShulSearchMap({
           <button
             onClick={() => setPopupSynagogue(null)}
             className="absolute right-2 top-2 z-10 rounded-full bg-black/30 p-1 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+            aria-label="Close"
           >
             <X className="h-3.5 w-3.5" />
           </button>

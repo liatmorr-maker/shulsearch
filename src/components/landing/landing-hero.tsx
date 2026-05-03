@@ -153,6 +153,7 @@ export function LandingHero() {
             <Input
               className="h-14 pl-11 pr-4 text-base text-slate-900 rounded-xl shadow-lg border-0"
               placeholder="City, zip code, or neighborhood…"
+              aria-label="Search by city, zip code, or neighborhood"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}

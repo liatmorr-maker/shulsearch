@@ -22,9 +22,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en">
         <body className="antialiased min-h-screen bg-[var(--background)]">
+          {/* Skip navigation — WCAG 2.4.1 */}
+          <a href="#main-content" className="sr-only">Skip to main content</a>
           <Analytics />
           <Navbar />
-          <main>{children}</main>
+          <main id="main-content">{children}</main>
         </body>
       </html>
     </ClerkProvider>

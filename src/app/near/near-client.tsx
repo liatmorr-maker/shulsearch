@@ -328,6 +328,7 @@ export function NearClient({ synagogues }: Props) {
                 <input
                   className="h-12 w-full rounded-xl border border-[var(--border)] pl-10 pr-4 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="e.g. 2538 Sherman St, Hollywood, FL 33020"
+                  aria-label="Enter a street address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && geocodeAndSearch(address)}
@@ -448,6 +449,7 @@ export function NearClient({ synagogues }: Props) {
               <input
                 className="h-12 w-full rounded-xl border border-[var(--border)] pl-10 pr-10 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Type a synagogue name, city, or denomination…"
+                aria-label="Search by place of worship name, city, or denomination"
                 value={shulQuery}
                 onChange={(e) => {
                   setShulQuery(e.target.value);

@@ -204,6 +204,7 @@ export function ResultsClient({
               <input
                 className="h-10 w-full rounded-lg border border-[var(--border)] pl-9 pr-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
                 placeholder="City, zip code, or neighborhood…"
+                aria-label="Search by city, zip code, or neighborhood"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch(searchInput)}

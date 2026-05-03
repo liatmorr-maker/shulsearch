@@ -53,6 +53,7 @@ export async function PopularAreas() {
           </div>
           <Link
             href="/results"
+            aria-label="View all areas"
             className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
           >
             View all →
@@ -80,10 +81,10 @@ export async function PopularAreas() {
                 <p className="mt-1 text-sm text-white/80">{area.description}</p>
                 <div className="mt-3 flex gap-3 text-xs font-medium">
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
-                    🛐 {shulByCity[area.name] ?? 0} places of worship
+                    <span role="img" aria-label="places of worship">🛐</span> {shulByCity[area.name] ?? 0} places of worship
                   </span>
                   <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
-                    🏠 {listingsByCity[area.name] ?? 0} listings
+                    <span role="img" aria-label="home">🏠</span> {listingsByCity[area.name] ?? 0} listings
                   </span>
                 </div>
               </div>
