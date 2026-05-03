@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Bed, Bath, Square, MapPin, Star, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, formatDistance, DENOMINATION_LABELS, cn } from "@/lib/utils";
+import { formatPrice, formatDistance, daysOnMarket, DENOMINATION_LABELS, cn } from "@/lib/utils";
 import type { MockProperty } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -41,6 +41,7 @@ export function PropertyCard({ property, isHighlighted, onHover, initialSaved = 
     undefined;
 
   const walkMins = nearestDist != null ? Math.round(nearestDist * 20) : null;
+  const dom = daysOnMarket(property.listedAt);
 
   // Sync with server-side saved state when it loads
   useEffect(() => { setSaved(initialSaved); }, [initialSaved]);
@@ -97,7 +98,7 @@ export function PropertyCard({ property, isHighlighted, onHover, initialSaved = 
         )}
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 z-10 flex gap-2">
+        <div className="absolute top-3 left-3 z-10 flex gap-2 flex-wrap">
           <Badge variant={property.listingType === "SALE" ? "default" : "success"}>
             {property.listingType === "SALE" ? "For Sale" : "For Rent"}
           </Badge>
@@ -106,7 +107,17 @@ export function PropertyCard({ property, isHighlighted, onHover, initialSaved = 
               <Star className="mr-1 h-3 w-3 fill-current" /> Featured
             </Badge>
           )}
+          {dom !== null && dom <= 3 && (
+            <Badge className="bg-emerald-500 text-white">New</Badge>
+          )}
         </div>
+
+        {/* Days on market — bottom-left of image */}
+        {dom !== null && dom > 3 && (
+          <div className="absolute bottom-3 left-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            {dom} days on market
+          </div>
+        )}
 
         {/* Save / heart button */}
         <button

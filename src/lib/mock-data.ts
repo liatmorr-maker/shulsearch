@@ -50,6 +50,7 @@ export interface MockProperty {
   nearestTempleDist?: number;
   synagogueCount1mi: number;
   proximityScore?: number;
+  listedAt?: string; // ISO date string
   synagogueDistances?: {
     synagogueId: string;
     synagogue: MockSynagogue;

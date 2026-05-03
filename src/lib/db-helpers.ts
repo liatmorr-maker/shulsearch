@@ -183,6 +183,7 @@ function propToMock(p: any): MockProperty {
     nearestTempleDist: p.nearestTempleDist ?? undefined,
     synagogueCount1mi: p.synagogueCount1mi,
     proximityScore: p.proximityScore ?? undefined,
+    listedAt: p.listedAt ? (p.listedAt instanceof Date ? p.listedAt.toISOString() : String(p.listedAt)) : undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     synagogueDistances: (p.synagogueDistances ?? []).map((sd: any) => ({
       synagogueId: sd.synagogueId,

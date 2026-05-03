@@ -1,5 +1,6 @@
 "use client";
 
+import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { X, Bed, Bath, Square } from "lucide-react";
@@ -66,6 +67,7 @@ export function ShulSearchMap({
         mapLoadedRef.current = true;
         renderPropMarkers(map, properties, highlightedPropertyId);
         renderSynMarkers(map, synagogues);
+        if (worshipType === "SYNAGOGUE") renderShabbatRings(map, synagogues);
       });
     };
 
@@ -102,6 +104,20 @@ export function ShulSearchMap({
     renderSynMarkers(map, synagogues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [synagogues]);
+
+  // ── Shabbat walk radius rings (synagogue mode only) ────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current) return;
+    // Remove old rings
+    ["shabbat-rings-fill", "shabbat-rings-outline"].forEach((id) => {
+      if (map.getLayer(id)) map.removeLayer(id);
+    });
+    if (map.getSource("shabbat-rings")) map.removeSource("shabbat-rings");
+
+    if (worshipType === "SYNAGOGUE") renderShabbatRings(map, synagogues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [synagogues, worshipType]);
 
   // ── Fly to new center when prop changes (e.g. user picks a different shul) ─
   useEffect(() => {
@@ -206,6 +222,67 @@ export function ShulSearchMap({
 
       synMarkersRef.current.push(marker);
     });
+  }
+
+  // ── Helper: Shabbat walk radius rings ─────────────────────────────────────
+  function renderShabbatRings(map: mapboxgl.Map, syns: MockSynagogue[]) {
+    // Create concentric ring polygons at 0.5 mi and 1.0 mi for each synagogue
+    const RADII = [1.0, 0.5]; // outer first so inner renders on top
+    const features: Feature[] = [];
+
+    syns.forEach((syn) => {
+      if (!syn.lat || !syn.lng) return;
+      RADII.forEach((radiusMi) => {
+        features.push(geoCircle([syn.lng, syn.lat], radiusMi));
+      });
+    });
+
+    if (features.length === 0) return;
+
+    const geojson: FeatureCollection = { type: "FeatureCollection", features };
+
+    map.addSource("shabbat-rings", { type: "geojson", data: geojson });
+
+    // Filled rings — very low opacity blue
+    map.addLayer({
+      id: "shabbat-rings-fill",
+      type: "fill",
+      source: "shabbat-rings",
+      paint: {
+        "fill-color": "#1a56db",
+        "fill-opacity": 0.04,
+      },
+    }, "waterway-label"); // insert below labels
+
+    // Ring outlines
+    map.addLayer({
+      id: "shabbat-rings-outline",
+      type: "line",
+      source: "shabbat-rings",
+      paint: {
+        "line-color": "#1a56db",
+        "line-opacity": 0.25,
+        "line-width": 1.5,
+        "line-dasharray": [4, 3],
+      },
+    }, "waterway-label");
+  }
+
+  // ── Helper: GeoJSON circle polygon ────────────────────────────────────────
+  function geoCircle(center: [number, number], radiusMi: number, steps = 64): Feature<Polygon> {
+    const km = radiusMi * 1.60934;
+    const coords: [number, number][] = [];
+    for (let i = 0; i <= steps; i++) {
+      const angle = (i / steps) * 2 * Math.PI;
+      const dx = (km / (111.32 * Math.cos(center[1] * Math.PI / 180))) * Math.cos(angle);
+      const dy = (km / 110.574) * Math.sin(angle);
+      coords.push([center[0] + dx, center[1] + dy]);
+    }
+    return {
+      type: "Feature",
+      geometry: { type: "Polygon", coordinates: [coords] },
+      properties: { radiusMi },
+    };
   }
 
   // Close popup when clicking the map background
@@ -399,6 +476,12 @@ export function ShulSearchMap({
               <span className="h-3 w-3 rounded-sm bg-[#0e9f6e]" />
               <span className="text-slate-600">For Rent</span>
             </div>
+            {worshipType === "SYNAGOGUE" && (
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-10 rounded-sm border border-dashed border-blue-400 bg-blue-100/40" />
+                <span className="text-slate-600">Walk zone</span>
+              </div>
+            )}
           </div>
         );
       })()}

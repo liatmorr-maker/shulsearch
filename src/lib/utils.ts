@@ -16,6 +16,13 @@ export function formatPrice(cents: number, type: "SALE" | "RENT"): string {
   return type === "RENT" ? `${formatted}/mo` : formatted;
 }
 
+/** Days on market from ISO date string */
+export function daysOnMarket(listedAt?: string): number | null {
+  if (!listedAt) return null;
+  const ms = Date.now() - new Date(listedAt).getTime();
+  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
+}
+
 /** Format distance in miles */
 export function formatDistance(miles: number): string {
   if (miles < 0.1) return `${Math.round(miles * 5280)} ft`;

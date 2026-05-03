@@ -11,7 +11,8 @@ import { RequestInfoModal } from "@/components/property/request-info-modal";
 import { UsageGateModal } from "@/components/usage-gate-modal";
 import { useUsageGate } from "@/hooks/use-usage-gate";
 import { useUser } from "@clerk/nextjs";
-import { formatPrice, formatDistance, DENOMINATION_LABELS, DENOMINATION_COLORS, cn } from "@/lib/utils";
+import { formatPrice, formatDistance, daysOnMarket, DENOMINATION_LABELS, DENOMINATION_COLORS, cn } from "@/lib/utils";
+import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import type { MockProperty } from "@/lib/mock-data";
 
 const ShulSearchMap = dynamic(
@@ -143,8 +144,16 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
 
           {/* Listing info */}
           <div>
-            <div className="mb-1 text-3xl font-extrabold text-slate-900">
-              {formatPrice(property.price, property.listingType)}
+            <div className="mb-1 flex items-center gap-3 flex-wrap">
+              <div className="text-3xl font-extrabold text-slate-900">
+                {formatPrice(property.price, property.listingType)}
+              </div>
+              {(() => {
+                const dom = daysOnMarket(property.listedAt);
+                if (dom === null) return null;
+                if (dom <= 3) return <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">🟢 New listing</span>;
+                return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{dom} days on market</span>;
+              })()}
             </div>
             <h1 className="mb-2 text-xl font-semibold text-slate-800">{property.title}</h1>
             <p className="mb-4 flex items-center gap-1.5 text-slate-500">
@@ -249,6 +258,11 @@ export function PropertyDetailClient({ property, nearbyShuls }: Props) {
                 Listed on ShulSearch · No fees to inquire
               </p>
             </div>
+
+            {/* Mortgage calculator — sale listings only */}
+            {property.listingType === "SALE" && (
+              <MortgageCalculator price={property.price / 100} />
+            )}
 
             {/* Nearby worship count badge */}
             <div className="rounded-xl bg-slate-50 border border-[var(--border)] p-4 text-center">
